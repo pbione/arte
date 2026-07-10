@@ -81,6 +81,7 @@
   };
 
   var STRIPE_PREFIX = "https://buy.stripe.com/";
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   var state = {
     lang: "pt",
@@ -162,7 +163,7 @@
     try {
       return new URL(path, window.location.href).href;
     } catch (e) {
-      return "";
+      return String(path);
     }
   }
 
@@ -187,6 +188,8 @@
         return { width: Math.round(width * 10), height: Math.round(height * 10) };
       }
     }
+    // Conservative portrait fallback to reserve space when the artwork data
+    // does not declare image dimensions or physical dimensions.
     return { width: 800, height: 1000 };
   }
 
@@ -264,7 +267,7 @@
     if (!window.history || typeof window.history.replaceState !== "function") return;
     try {
       window.history.replaceState(null, "", pageUrl(obra));
-    } catch (e) { /* sem histórico disponível */ }
+    } catch (e) { /* history unavailable */ }
   }
 
   function setMetaContent(id, content) {
@@ -484,7 +487,7 @@
     var mail = $("about-email");
     var email = typeof artista.email === "string" ? artista.email.trim() : "";
     // valida formato simples de e-mail antes de montar o mailto:
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (EMAIL_RE.test(email)) {
       mail.href = "mailto:" + encodeURIComponent(email).replace(/%40/g, "@");
       mail.hidden = false;
     } else {
@@ -565,7 +568,7 @@
   function artistEmail() {
     var artista = (window.ARTISTA && typeof window.ARTISTA === "object") ? window.ARTISTA : {};
     var email = typeof artista.email === "string" ? artista.email.trim() : "";
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
+    return EMAIL_RE.test(email) ? email : "";
   }
 
   function prepareMailtoUrl(to, body) {

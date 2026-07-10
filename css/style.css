@@ -12,6 +12,8 @@
   --accent-contrast: #fff;
   --danger: #b42318;
   --focus: #111;
+  --focus-shadow: 0 0 0 3px rgba(28, 28, 26, 0.08);
+  --tap-highlight: rgba(28, 28, 26, 0.15);
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
   --frame-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   --radius: 2px;
@@ -26,7 +28,7 @@ a,
 button,
 input,
 textarea {
-  -webkit-tap-highlight-color: rgba(28, 28, 26, 0.15);
+  -webkit-tap-highlight-color: var(--tap-highlight);
 }
 
 a:focus-visible,
@@ -332,7 +334,7 @@ body {
 .close-btn:hover,
 .close-btn:focus-visible {
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(28, 28, 26, 0.08);
+  box-shadow: var(--focus-shadow);
 }
 
 /* ---------- Painel da obra ---------- */
@@ -646,6 +648,8 @@ body {
     --accent-contrast: #141414;
     --danger: #ff8a80;
     --focus: #f7f1dd;
+    --focus-shadow: 0 0 0 3px rgba(247, 241, 221, 0.18);
+    --tap-highlight: rgba(247, 241, 221, 0.18);
     --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
     --frame-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
   }
