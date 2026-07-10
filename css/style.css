@@ -4,10 +4,14 @@
 
 :root {
   --bg: #fafaf8;
+  --panel-bg: #fff;
   --ink: #1c1c1a;
   --ink-soft: #6b6b66;
   --line: #e6e6e2;
   --accent: #1c1c1a;
+  --accent-contrast: #fff;
+  --danger: #b42318;
+  --focus: #111;
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
   --frame-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
   --radius: 2px;
@@ -17,6 +21,21 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
+
+a,
+button,
+input,
+textarea {
+  -webkit-tap-highlight-color: rgba(28, 28, 26, 0.15);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
 
 body {
   background: var(--bg);
@@ -151,11 +170,16 @@ body {
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
+.artwork-card picture,
+.artwork-figure picture {
+  display: block;
+}
+
 .artwork-card img {
   width: 100%;
   height: auto;
   display: block;
-  background: #fff;
+  background: var(--panel-bg);
   padding: 10px;
   border: 1px solid var(--line);
   box-shadow: var(--frame-shadow);
@@ -225,7 +249,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  background: #fff;
+  background: var(--panel-bg);
   border: 1px solid var(--line);
   border-radius: 999px;
   padding: 0.45rem 1rem 0.45rem 0.45rem;
@@ -272,7 +296,7 @@ body {
 
 .panel {
   position: relative;
-  background: #fff;
+  background: var(--panel-bg);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
   max-width: 960px;
@@ -291,15 +315,25 @@ body {
   position: absolute;
   top: 0.9rem;
   right: 1.1rem;
-  background: none;
-  border: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
   font-size: 1.6rem;
   line-height: 1;
-  color: var(--ink-soft);
+  color: var(--ink);
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.2s;
 }
-.close-btn:hover { color: var(--ink); }
+.close-btn:hover,
+.close-btn:focus-visible {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(28, 28, 26, 0.08);
+}
 
 /* ---------- Painel da obra ---------- */
 .artwork-layout {
@@ -314,7 +348,7 @@ body {
   height: auto;
   display: block;
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--panel-bg);
   padding: 8px;
   box-shadow: var(--frame-shadow);
 }
@@ -366,7 +400,7 @@ body {
 .buy-btn {
   display: inline-block;
   background: var(--ink);
-  color: #fff;
+  color: var(--accent-contrast);
   text-decoration: none;
   font-size: 0.8rem;
   letter-spacing: 0.2em;
@@ -374,7 +408,8 @@ body {
   padding: 0.9rem 2.2rem;
   transition: opacity 0.2s;
 }
-.buy-btn:hover { opacity: 0.82; }
+.buy-btn:hover,
+.buy-btn:focus-visible { opacity: 0.82; }
 
 .sold-badge {
   display: inline-block;
@@ -435,7 +470,7 @@ body {
   width: 3.4rem;
   height: 3.4rem;
   border-radius: 50%;
-  background: #fff;                 /* círculo branco */
+  background: var(--panel-bg);      /* círculo branco */
   border: 1px solid var(--line);
   color: #c8102e;                   /* telefone vermelho */
   display: flex;
@@ -482,7 +517,7 @@ body {
 .contact-form input[type="email"],
 .contact-form textarea {
   border: 1px solid var(--line);
-  background: #fff;
+  background: var(--panel-bg);
   padding: 0.65rem 0.8rem;
   font: inherit;
   font-size: 0.9rem;
@@ -510,7 +545,25 @@ body {
 .send-btn { border: none; cursor: pointer; font: inherit; font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; align-self: flex-start; }
 .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-.form-error { color: #c8102e; font-size: 0.8rem; }
+.form-error,
+.form-success,
+.form-fallback {
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.form-error { color: var(--danger); }
+.form-success { color: var(--ink); }
+.form-fallback {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+.form-fallback-email {
+  font-weight: 600;
+  word-break: break-word;
+}
 
 /* ---------- Footer ---------- */
 .site-footer {
@@ -556,5 +609,56 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   * { transition: none !important; animation: none !important; }
+}
+
+@media (hover: none) {
+  .gallery .artwork-card,
+  .gallery.has-hover .artwork-card,
+  .gallery.has-hover .artwork-card:hover,
+  .gallery.has-hover .artwork-card:focus-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  .artwork-card .card-caption {
+    opacity: 1;
+  }
+
+  .artwork-card .hover-hint {
+    position: static;
+    display: block;
+    margin-top: 0.35rem;
+    opacity: 1;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --panel-bg: #1c1c1c;
+    --ink: #f4f2ec;
+    --ink-soft: #c7c2b4;
+    --line: #383838;
+    --accent: #f4f2ec;
+    --accent-contrast: #141414;
+    --danger: #ff8a80;
+    --focus: #f7f1dd;
+    --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+    --frame-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  }
+
+  .topbar.compact {
+    box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  .overlay {
+    background: rgba(20, 20, 20, 0.88);
+  }
+
+  .contact-btn {
+    color: #ff5a72;
+  }
 }

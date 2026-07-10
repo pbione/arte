@@ -8,7 +8,17 @@
         content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
   <meta name="referrer" content="no-referrer">
   <meta name="description" content="p.bione — galeria de arte autoral. Original artworks by p.bione.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="p.bione — arte autoral" id="meta-og-title">
+  <meta property="og:description" content="p.bione — galeria de arte autoral. Original artworks by p.bione." id="meta-og-description">
+  <meta property="og:image" content="https://pbione.github.io/arte/images/logo.svg" id="meta-og-image">
+  <meta property="og:url" content="https://pbione.github.io/arte/" id="meta-og-url">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="p.bione — arte autoral" id="meta-twitter-title">
+  <meta name="twitter:description" content="p.bione — galeria de arte autoral. Original artworks by p.bione." id="meta-twitter-description">
+  <meta name="twitter:image" content="https://pbione.github.io/arte/images/logo.svg" id="meta-twitter-image">
   <title>p.bione — arte autoral</title>
+  <link rel="canonical" href="https://pbione.github.io/arte/" id="meta-canonical">
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:,">
 </head>
@@ -17,7 +27,7 @@
   <!-- Barra do topo: encolhe ao rolar (wordmark vira logo, séries alinham à logo) -->
   <div id="topbar" class="topbar">
     <header class="site-header">
-      <img id="brand-logo" class="brand-logo" src="images/logo.svg" alt="p.bione">
+      <img id="brand-logo" class="brand-logo" src="images/logo.svg" alt="p.bione" width="38" height="38">
       <h1 class="wordmark">p.bione</h1>
       <!-- Navegação de séries (aparece só se houver mais de uma série) -->
       <nav id="series-nav" class="series-nav" hidden aria-label="Séries"></nav>
@@ -38,7 +48,7 @@
   <div id="about-panel" class="overlay" hidden>
     <div class="panel about-panel" role="dialog" aria-modal="true" aria-labelledby="about-title">
       <button class="close-btn" data-close type="button" aria-label="Fechar">&times;</button>
-      <img id="about-foto" class="about-foto" alt="p.bione" hidden>
+      <img id="about-foto" class="about-foto" alt="p.bione" width="92" height="92" loading="lazy" decoding="async" hidden>
       <h2 id="about-title" class="panel-title">p.bione</h2>
       <p id="about-bio" class="about-bio"></p>
       <div class="about-contacts">
@@ -54,7 +64,10 @@
       <button class="close-btn" data-close type="button" aria-label="Fechar">&times;</button>
       <div class="artwork-layout">
         <figure class="artwork-figure">
-          <img id="artwork-img" alt="">
+          <picture id="artwork-picture">
+            <source id="artwork-webp" type="image/webp">
+            <img id="artwork-img" alt="" width="800" height="1000" decoding="async">
+          </picture>
         </figure>
         <div class="artwork-info">
           <h2 id="artwork-title" class="artwork-title"></h2>
@@ -119,13 +132,19 @@
           <span id="lbl-consent"></span>
         </label>
         <p id="form-error" class="form-error" hidden></p>
+        <p id="form-success" class="form-success" role="status" hidden></p>
+        <p id="form-fallback" class="form-fallback" hidden>
+          <span id="form-fallback-text"></span>
+          <a id="form-fallback-link" class="contact-link" target="_blank" rel="noopener noreferrer"></a>
+          <span id="form-fallback-email" class="form-fallback-email"></span>
+        </p>
         <button type="submit" id="send-btn" class="buy-btn send-btn" disabled></button>
       </form>
     </div>
   </div>
 
   <footer class="site-footer">
-    <img src="images/logo.svg" alt="" class="footer-logo" aria-hidden="true">
+    <img src="images/logo.svg" alt="" class="footer-logo" width="26" height="26" aria-hidden="true">
     <a id="terms-link" class="terms-link" href="docs/termos-e-privacidade.pdf" target="_blank" rel="noopener noreferrer"></a>
     <small id="footer-note"></small>
   </footer>
