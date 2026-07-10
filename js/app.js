@@ -81,7 +81,9 @@
   };
 
   var STRIPE_PREFIX = "https://buy.stripe.com/";
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var FALLBACK_IMAGE_DIMENSION = 1000;
+  var CONTACT_FALLBACK_DELAY_MS = 1200;
 
   var state = {
     lang: "pt",
@@ -195,7 +197,7 @@
     if (parsed) return parsed;
     // Neutral square fallback to reserve space when the artwork data does not
     // declare image dimensions or physical dimensions.
-    return { width: 1000, height: 1000 };
+    return { width: FALLBACK_IMAGE_DIMENSION, height: FALLBACK_IMAGE_DIMENSION };
   }
 
   function imageData(obra, widths) {
@@ -492,7 +494,7 @@
     var mail = $("about-email");
     var email = typeof artista.email === "string" ? artista.email.trim() : "";
     // valida formato simples de e-mail antes de montar o mailto:
-    if (EMAIL_RE.test(email)) {
+    if (EMAIL_REGEX.test(email)) {
       mail.href = "mailto:" + encodeURIComponent(email).replace(/%40/g, "@");
       mail.hidden = false;
     } else {
@@ -577,7 +579,7 @@
   function artistEmail() {
     var artista = (window.ARTISTA && typeof window.ARTISTA === "object") ? window.ARTISTA : {};
     var email = typeof artista.email === "string" ? artista.email.trim() : "";
-    return EMAIL_RE.test(email) ? email : "";
+    return EMAIL_REGEX.test(email) ? email : "";
   }
 
   function prepareMailtoUrl(to, body) {
@@ -655,7 +657,7 @@
         state.contactFallbackTimer = window.setTimeout(function () {
           state.contactFallbackTimer = 0;
           showContactFallback(t("fFallback"), mailtoUrl, to);
-        }, 1200);
+        }, CONTACT_FALLBACK_DELAY_MS);
       } catch (e) {
         errorEl.textContent = t("fMailError");
         errorEl.hidden = false;
