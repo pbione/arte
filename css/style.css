@@ -28,7 +28,6 @@ a,
 button,
 input,
 textarea {
-  tap-highlight-color: var(--tap-highlight);
   -webkit-tap-highlight-color: var(--tap-highlight);
 }
 

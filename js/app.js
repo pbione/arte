@@ -87,7 +87,8 @@
     lang: "pt",
     serie: null, // null = todas
     lastFocus: null,
-    activeArtwork: null
+    activeArtwork: null,
+    contactFallbackTimer: 0
   };
 
   try {
@@ -110,7 +111,7 @@
   }
 
   /**
-   * Bloqueia qualquer origem que não seja um caminho relativo local.
+   * Bloquear qualquer origem que não seja um caminho relativo local.
    *
    * Threat model: `OBRAS` é conteúdo editável. Se aceitássemos `javascript:`,
    * `data:` ou URLs externas aqui, um valor malicioso poderia executar script,
@@ -298,8 +299,8 @@
     setMetaContent("meta-twitter-title", title);
     setMetaContent("meta-twitter-description", description);
     setMetaContent("meta-twitter-image", image);
-    var canonical = $("meta-canonical");
-    if (canonical) canonical.setAttribute("href", url);
+    var canonicalLink = $("canonical-link");
+    if (canonicalLink) canonicalLink.setAttribute("href", url);
   }
 
   function applyUiMetadata() {
@@ -560,6 +561,10 @@
   }
 
   function resetContactFeedback() {
+    if (state.contactFallbackTimer) {
+      window.clearTimeout(state.contactFallbackTimer);
+      state.contactFallbackTimer = 0;
+    }
     $("form-error").hidden = true;
     $("form-success").hidden = true;
     $("form-fallback").hidden = true;
@@ -642,7 +647,10 @@
         window.location.href = mailtoUrl;
         $("form-success").textContent = t("fSuccess");
         $("form-success").hidden = false;
-        showContactFallback(t("fFallback"), mailtoUrl, to);
+        state.contactFallbackTimer = window.setTimeout(function () {
+          state.contactFallbackTimer = 0;
+          showContactFallback(t("fFallback"), mailtoUrl, to);
+        }, 1200);
       } catch (e) {
         errorEl.textContent = t("fMailError");
         errorEl.hidden = false;
