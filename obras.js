@@ -28,8 +28,8 @@ var OBRAS = [
     dimensoes: "60 × 80 cm",
     ano: 2026,
     preco: 450, // em USD, só números
-    imagem: "images/obra1.svg",
-    stripeLink: "",
+    imagem: "images/caos.png",
+    stripeLink: "https://buy.stripe.com/bJe6oB4sygQi4oNdf17Vm00",
     vendido: false
   },
   {
