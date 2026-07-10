@@ -175,20 +175,24 @@
     }).join(", ");
   }
 
+  function parsedArtworkSize(obra) {
+    var matches = typeof obra.dimensoes === "string" ? obra.dimensoes.match(/(\d+(?:[.,]\d+)?)/g) : null;
+    var width = matches && matches[0] ? Number(matches[0].replace(",", ".")) : NaN;
+    var height = matches && matches[1] ? Number(matches[1].replace(",", ".")) : NaN;
+    if (isFinite(width) && width > 0 && isFinite(height) && height > 0) {
+      return { width: Math.round(width * 10), height: Math.round(height * 10) };
+    }
+    return null;
+  }
+
   function imageSize(obra) {
     var width = Number(obra && obra.imagemLargura);
     var height = Number(obra && obra.imagemAltura);
     if (isFinite(width) && width > 0 && isFinite(height) && height > 0) {
       return { width: Math.round(width), height: Math.round(height) };
     }
-    var matches = typeof obra.dimensoes === "string" ? obra.dimensoes.match(/(\d+(?:[.,]\d+)?)/g) : null;
-    if (matches && matches.length >= 2) {
-      width = Number(matches[0].replace(",", "."));
-      height = Number(matches[1].replace(",", "."));
-      if (isFinite(width) && width > 0 && isFinite(height) && height > 0) {
-        return { width: Math.round(width * 10), height: Math.round(height * 10) };
-      }
-    }
+    var parsed = parsedArtworkSize(obra);
+    if (parsed) return parsed;
     // Neutral square fallback to reserve space when the artwork data does not
     // declare image dimensions or physical dimensions.
     return { width: 1000, height: 1000 };
@@ -628,9 +632,10 @@
       // Veja no README como trocar por um serviço de formulários (ex: Formspree).
       var to = artistEmail();
       if (!to) {
-        errorEl.textContent = t("fMailError");
+        var mailError = t("fMailError");
+        errorEl.textContent = mailError;
         errorEl.hidden = false;
-        showContactFallback(t("fMailError"), "", "");
+        showContactFallback(mailError, "", "");
         return;
       }
 

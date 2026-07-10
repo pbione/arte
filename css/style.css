@@ -11,6 +11,7 @@
   --accent: #1c1c1a;
   --accent-contrast: #fff;
   --danger: #b42318;
+  --success: #1f7a1f;
   --focus: #111;
   --focus-shadow: 0 0 0 3px rgba(28, 28, 26, 0.08);
   --tap-highlight: rgba(28, 28, 26, 0.15);
@@ -555,7 +556,7 @@ body {
 }
 
 .form-error { color: var(--danger); }
-.form-success { color: var(--ink); }
+.form-success { color: var(--success); }
 .form-fallback {
   display: flex;
   flex-wrap: wrap;
@@ -647,6 +648,7 @@ body {
     --accent: #f4f2ec;
     --accent-contrast: #141414;
     --danger: #ff8a80;
+    --success: #7ee787;
     --focus: #f7f1dd;
     --focus-shadow: 0 0 0 3px rgba(247, 241, 221, 0.18);
     --tap-highlight: rgba(247, 241, 221, 0.18);
