@@ -1,0 +1,560 @@
+/* ================================================
+   p.bione — galeria branca minimalista
+   ================================================ */
+
+:root {
+  --bg: #fafaf8;
+  --ink: #1c1c1a;
+  --ink-soft: #6b6b66;
+  --line: #e6e6e2;
+  --accent: #1c1c1a;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.14);
+  --frame-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --radius: 2px;
+  font-size: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Topbar (encolhe ao rolar) ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--bg);
+  transition: box-shadow 0.3s ease;
+}
+
+.site-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.4rem 1.5rem 1rem;
+  position: relative;
+  transition: padding 0.3s ease;
+}
+
+.wordmark {
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: 0.55em;
+  text-transform: lowercase;
+  color: var(--ink);
+  transition: opacity 0.25s ease;
+}
+
+/* Logo: escondida no topo, aparece na versão compacta */
+.brand-logo {
+  display: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* --- Versão compacta (usuário rolou a página) --- */
+.topbar.compact { box-shadow: 0 1px 0 var(--line), 0 6px 18px rgba(0,0,0,0.05); }
+
+.topbar.compact .site-header {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 1.4rem;
+  padding: 0.55rem 1.5rem;
+}
+
+.topbar.compact .wordmark { display: none; }      /* 1. nome some... */
+.topbar.compact .brand-logo { display: block; }   /* ...e vira a logo */
+
+.topbar.compact .series-nav {                     /* 2. séries alinhadas à logo */
+  justify-content: flex-start;
+  padding: 0;
+}
+
+.lang-toggle {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: color 0.2s, border-color 0.2s;
+}
+.lang-toggle:hover { color: var(--ink); border-color: var(--ink); }
+
+/* ---------- Séries ---------- */
+.series-nav {
+  display: flex;
+  justify-content: center;
+  gap: 1.8rem;
+  padding: 0.4rem 1rem 0.2rem;
+  flex-wrap: wrap;
+}
+.series-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0.4rem 0.2rem;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.series-link:hover { color: var(--ink); }
+.series-link[aria-pressed="true"] {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+}
+
+/* ---------- Galeria ---------- */
+.gallery {
+  flex: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 2.2rem 2rem 6rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+  justify-content: center;
+  align-content: start;
+  gap: 3rem 2.6rem;
+}
+
+.artwork-card {
+  position: relative;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: center;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.artwork-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid var(--line);
+  box-shadow: var(--frame-shadow);
+  transition: box-shadow 0.35s ease;
+}
+
+.card-caption {
+  margin-top: 0.8rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  transition: opacity 0.3s ease;
+}
+
+/* Hover: destaque com leve zoom, os demais recuam */
+.gallery.has-hover .artwork-card { opacity: 0.35; }
+.gallery.has-hover .artwork-card:hover,
+.gallery.has-hover .artwork-card:focus-visible {
+  opacity: 1;
+  transform: scale(1.045);
+  z-index: 2;
+}
+.artwork-card:hover img,
+.artwork-card:focus-visible img {
+  box-shadow: var(--shadow);
+}
+
+/* No hover: esconde legenda, mostra só o convite */
+.artwork-card .hover-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1.6rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: var(--ink-soft);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.artwork-card:hover .card-caption,
+.artwork-card:focus-visible .card-caption { opacity: 0; }
+.artwork-card:hover .hover-hint,
+.artwork-card:focus-visible .hover-hint { opacity: 1; }
+
+/* Selo vendido na miniatura */
+.card-sold {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.55rem;
+  pointer-events: none;
+}
+
+/* ---------- Botão inferior esquerdo ---------- */
+.about-btn {
+  position: fixed;
+  left: 1.4rem;
+  bottom: 1.4rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.45rem 1rem 0.45rem 0.45rem;
+  cursor: pointer;
+  box-shadow: var(--frame-shadow);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.about-btn:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+
+.about-logo {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.about-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
+}
+
+/* ---------- Overlays / janelas flutuantes ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(250, 250, 248, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+.overlay[hidden] { display: none; }
+
+.panel {
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  max-width: 960px;
+  width: 100%;
+  padding: 2.6rem;
+  animation: panel-in 0.28s ease;
+  margin: auto;
+}
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+.close-btn {
+  position: absolute;
+  top: 0.9rem;
+  right: 1.1rem;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.close-btn:hover { color: var(--ink); }
+
+/* ---------- Painel da obra ---------- */
+.artwork-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 2.4rem;
+  align-items: start;
+}
+
+.artwork-figure img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 8px;
+  box-shadow: var(--frame-shadow);
+}
+
+.artwork-title {
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+}
+
+.artwork-series {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 1.4rem;
+}
+
+.artwork-desc {
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: var(--ink);
+  margin-bottom: 1.6rem;
+  white-space: pre-line;
+}
+
+.artwork-specs {
+  border-top: 1px solid var(--line);
+  margin-bottom: 1.6rem;
+}
+.artwork-specs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.82rem;
+}
+.artwork-specs dt { color: var(--ink-soft); letter-spacing: 0.06em; }
+.artwork-specs dd { text-align: right; }
+
+.artwork-price {
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 1.4rem;
+}
+
+.buy-btn {
+  display: inline-block;
+  background: var(--ink);
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.9rem 2.2rem;
+  transition: opacity 0.2s;
+}
+.buy-btn:hover { opacity: 0.82; }
+
+.sold-badge {
+  display: inline-block;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 0.8rem 2rem;
+}
+
+/* ---------- Painel sobre ---------- */
+.about-panel { max-width: 560px; }
+
+.about-foto {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;        /* moldura redonda */
+  object-fit: cover;         /* corta a foto sem distorcer */
+  border: 3px solid #fff;
+  outline: 1px solid var(--line);
+  box-shadow: var(--frame-shadow);
+  display: block;
+  margin-bottom: 1.2rem;     /* acima do título, canto superior esquerdo */
+}
+.panel-title {
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 0.4em;
+  margin-bottom: 1.4rem;
+}
+.about-bio {
+  font-size: 0.92rem;
+  line-height: 1.8;
+  color: var(--ink);
+  margin-bottom: 1.8rem;
+  white-space: pre-line;
+}
+.about-contacts { display: flex; gap: 1.6rem; flex-wrap: wrap; }
+.contact-link {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 2px;
+  transition: opacity 0.2s;
+}
+.contact-link:hover { opacity: 0.6; }
+
+/* ---------- Botão de contato (telefone retrô) ---------- */
+.contact-btn {
+  position: fixed;
+  right: 1.4rem;
+  bottom: 1.4rem;
+  z-index: 50;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: 50%;
+  background: #fff;                 /* círculo branco */
+  border: 1px solid var(--line);
+  color: #c8102e;                   /* telefone vermelho */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--frame-shadow);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.contact-btn:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+.phone-icon { width: 1.9rem; height: 1.9rem; }
+
+.contact-tooltip {
+  position: absolute;
+  bottom: calc(100% + 0.6rem);
+  right: 0;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.contact-btn:hover .contact-tooltip,
+.contact-btn:focus-visible .contact-tooltip { opacity: 1; }
+
+/* ---------- Formulário de contato ---------- */
+.contact-panel { max-width: 520px; }
+
+.contact-form { display: flex; flex-direction: column; gap: 1rem; }
+.contact-form label { display: flex; flex-direction: column; gap: 0.35rem; }
+.contact-form label > span {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.contact-form input[type="text"],
+.contact-form input[type="tel"],
+.contact-form input[type="email"],
+.contact-form textarea {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.65rem 0.8rem;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  border-radius: var(--radius);
+  resize: vertical;
+}
+.contact-form input:focus,
+.contact-form textarea:focus { outline: 1px solid var(--ink); }
+
+.contact-form .consent {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.contact-form .consent input { margin-top: 0.15rem; accent-color: var(--ink); }
+.contact-form .consent span {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--ink);
+  line-height: 1.55;
+}
+
+.send-btn { border: none; cursor: pointer; font: inherit; font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; align-self: flex-start; }
+.send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.form-error { color: #c8102e; font-size: 0.8rem; }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  padding: 1.2rem;
+  color: var(--ink-soft);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+}
+
+.footer-logo {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.terms-link {
+  color: var(--ink);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.7rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s;
+}
+.terms-link:hover { border-color: var(--ink); }
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 760px) {
+  .gallery { padding: 1.6rem 1.2rem 6rem; gap: 2.4rem 1.6rem; }
+  .artwork-layout { grid-template-columns: 1fr; gap: 1.6rem; }
+  .panel { padding: 1.8rem 1.4rem; }
+  .about-label { display: none; }
+  /* Em telas de toque não há hover: mantém tudo visível */
+  .gallery.has-hover .artwork-card { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

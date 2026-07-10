@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Segurança: Content-Security-Policy — só permite recursos do próprio site -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="p.bione — galeria de arte autoral. Original artworks by p.bione.">
+  <title>p.bione — arte autoral</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+
+  <!-- Barra do topo: encolhe ao rolar (wordmark vira logo, séries alinham à logo) -->
+  <div id="topbar" class="topbar">
+    <header class="site-header">
+      <img id="brand-logo" class="brand-logo" src="images/logo.svg" alt="p.bione">
+      <h1 class="wordmark">p.bione</h1>
+      <!-- Navegação de séries (aparece só se houver mais de uma série) -->
+      <nav id="series-nav" class="series-nav" hidden aria-label="Séries"></nav>
+      <button id="lang-toggle" class="lang-toggle" type="button" aria-label="Switch language">EN</button>
+    </header>
+  </div>
+
+  <!-- Galeria central -->
+  <main id="gallery" class="gallery" aria-label="Obras"></main>
+
+  <!-- Botão inferior esquerdo: quem sou eu + contatos -->
+  <button id="about-btn" class="about-btn" type="button" aria-haspopup="dialog" aria-controls="about-panel">
+    <span class="about-logo" aria-hidden="true">p.b</span>
+    <span id="about-btn-label" class="about-label">quem sou eu?</span>
+  </button>
+
+  <!-- Painel "quem sou eu" -->
+  <div id="about-panel" class="overlay" hidden>
+    <div class="panel about-panel" role="dialog" aria-modal="true" aria-labelledby="about-title">
+      <button class="close-btn" data-close type="button" aria-label="Fechar">&times;</button>
+      <img id="about-foto" class="about-foto" alt="p.bione" hidden>
+      <h2 id="about-title" class="panel-title">p.bione</h2>
+      <p id="about-bio" class="about-bio"></p>
+      <div class="about-contacts">
+        <a id="about-instagram" class="contact-link" target="_blank" rel="noopener noreferrer">Instagram</a>
+        <a id="about-email" class="contact-link">E-mail</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Janela flutuante da obra -->
+  <div id="artwork-modal" class="overlay" hidden>
+    <div class="panel artwork-panel" role="dialog" aria-modal="true" aria-labelledby="artwork-title">
+      <button class="close-btn" data-close type="button" aria-label="Fechar">&times;</button>
+      <div class="artwork-layout">
+        <figure class="artwork-figure">
+          <img id="artwork-img" alt="">
+        </figure>
+        <div class="artwork-info">
+          <h2 id="artwork-title" class="artwork-title"></h2>
+          <p id="artwork-series" class="artwork-series"></p>
+          <p id="artwork-desc" class="artwork-desc"></p>
+          <dl class="artwork-specs">
+            <div><dt id="spec-technique-label"></dt><dd id="spec-technique"></dd></div>
+            <div><dt id="spec-dimensions-label"></dt><dd id="spec-dimensions"></dd></div>
+            <div><dt id="spec-year-label"></dt><dd id="spec-year"></dd></div>
+          </dl>
+          <p id="artwork-price" class="artwork-price"></p>
+          <a id="buy-btn" class="buy-btn" target="_blank" rel="noopener noreferrer" hidden></a>
+          <p id="sold-badge" class="sold-badge" hidden></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Botão de contato: telefone retrô vermelho em círculo branco (inferior direito) -->
+  <button id="contact-btn" class="contact-btn" type="button" aria-haspopup="dialog" aria-controls="contact-panel">
+    <!-- Ícone: telefone com fio anos 90, com teclado físico -->
+    <svg class="phone-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path d="M10 26 q22 -14 44 0 l-5 9 q-3 4 -7 2 l-5 -3 q-3 -2 -3 -5 v-3 q-2 -1 -2 -1 -2 0 -2 1 v3 q0 3 -3 5 l-5 3 q-4 2 -7 -2 z" fill="currentColor"/>
+      <rect x="18" y="38" width="28" height="16" rx="3" fill="currentColor"/>
+      <g fill="#fff">
+        <rect x="23" y="41" width="4" height="3" rx="1"/><rect x="30" y="41" width="4" height="3" rx="1"/><rect x="37" y="41" width="4" height="3" rx="1"/>
+        <rect x="23" y="46" width="4" height="3" rx="1"/><rect x="30" y="46" width="4" height="3" rx="1"/><rect x="37" y="46" width="4" height="3" rx="1"/>
+      </g>
+      <path d="M14 30 q-4 10 2 22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </svg>
+    <span id="contact-tooltip" class="contact-tooltip" role="tooltip">Contato</span>
+  </button>
+
+  <!-- Formulário de contato -->
+  <div id="contact-panel" class="overlay" hidden>
+    <div class="panel contact-panel" role="dialog" aria-modal="true" aria-labelledby="contact-title">
+      <button class="close-btn" data-close type="button" aria-label="Fechar">&times;</button>
+      <h2 id="contact-title" class="panel-title"></h2>
+      <form id="contact-form" class="contact-form" novalidate>
+        <label>
+          <span id="lbl-nome"></span>
+          <input type="text" id="f-nome" name="nome" required autocomplete="name" maxlength="120">
+        </label>
+        <label>
+          <span id="lbl-celular"></span>
+          <input type="tel" id="f-celular" name="celular" required autocomplete="tel" maxlength="30" pattern="[0-9+()\-\s]{6,30}">
+        </label>
+        <label>
+          <span id="lbl-email"></span>
+          <input type="email" id="f-email" name="email" required autocomplete="email" maxlength="150">
+        </label>
+        <label>
+          <span id="lbl-pais"></span>
+          <input type="text" id="f-pais" name="pais" required autocomplete="country-name" maxlength="60">
+        </label>
+        <label>
+          <span id="lbl-mensagem"></span>
+          <textarea id="f-mensagem" name="mensagem" required rows="4" maxlength="2000"></textarea>
+        </label>
+        <label class="consent">
+          <input type="checkbox" id="f-consent" required>
+          <span id="lbl-consent"></span>
+        </label>
+        <p id="form-error" class="form-error" hidden></p>
+        <button type="submit" id="send-btn" class="buy-btn send-btn" disabled></button>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <img src="images/logo.svg" alt="" class="footer-logo" aria-hidden="true">
+    <a id="terms-link" class="terms-link" href="docs/termos-e-privacidade.pdf" target="_blank" rel="noopener noreferrer"></a>
+    <small id="footer-note"></small>
+  </footer>
+
+  <script src="obras.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
