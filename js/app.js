@@ -188,9 +188,9 @@
         return { width: Math.round(width * 10), height: Math.round(height * 10) };
       }
     }
-    // Conservative portrait fallback to reserve space when the artwork data
-    // does not declare image dimensions or physical dimensions.
-    return { width: 800, height: 1000 };
+    // Neutral square fallback to reserve space when the artwork data does not
+    // declare image dimensions or physical dimensions.
+    return { width: 1000, height: 1000 };
   }
 
   function imageData(obra, widths) {
@@ -588,7 +588,9 @@
       link.hidden = true;
       link.removeAttribute("href");
     }
-    $("form-fallback-email").textContent = email;
+    var emailEl = $("form-fallback-email");
+    emailEl.textContent = email;
+    emailEl.hidden = !email;
     $("form-fallback").hidden = false;
   }
 
