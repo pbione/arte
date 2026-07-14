@@ -13,7 +13,10 @@
   /* ---------- Textos da interface (PT/EN) ---------- */
   var UI = {
     pt: {
+      siteTitle: "p.bione — arte autoral",
+      siteDescription: "p.bione — galeria de arte autoral. Original artworks by p.bione.",
       clickInfo: "clique para mais info",
+      openArtwork: "abrir detalhes da obra",
       aboutLabel: "quem sou eu?",
       buy: "Comprar",
       sold: "Vendido",
@@ -36,10 +39,17 @@
       fConsent: "Confirmo que li os Termos & Privacidade e autorizo o uso dos meus dados de contato e das informações fornecidas exclusivamente para responder a esta mensagem.",
       fSend: "Enviar",
       fError: "Preencha todos os campos e marque a caixa de confirmação.",
+      fSuccess: "Seu aplicativo de e-mail deve abrir com a mensagem pronta.",
+      fFallback: "Se isso não acontecer, envie manualmente para:",
+      fFallbackLink: "abrir e-mail",
+      fMailError: "Não foi possível preparar o e-mail agora. Use o endereço abaixo para entrar em contato:",
       mailSubject: "Contato pelo site p.bione"
     },
     en: {
+      siteTitle: "p.bione — original art",
+      siteDescription: "p.bione — original art gallery. Original artworks by p.bione.",
       clickInfo: "click for more info",
+      openArtwork: "open artwork details",
       aboutLabel: "about me",
       buy: "Buy",
       sold: "Sold",
@@ -62,16 +72,25 @@
       fConsent: "I confirm I have read the Terms & Privacy and consent to the use of my contact details and the information provided exclusively to reply to this message.",
       fSend: "Send",
       fError: "Please fill in all fields and tick the confirmation box.",
+      fSuccess: "Your e-mail app should open with the message ready to send.",
+      fFallback: "If it does not open, please contact the artist manually at:",
+      fFallbackLink: "open e-mail",
+      fMailError: "We could not prepare the e-mail right now. Please use the address below to get in touch:",
       mailSubject: "Contact via p.bione website"
     }
   };
 
   var STRIPE_PREFIX = "https://buy.stripe.com/";
+  var EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var FALLBACK_IMAGE_DIMENSION = 1000;
+  var CONTACT_FALLBACK_DELAY_MS = 1200;
 
   var state = {
     lang: "pt",
     serie: null, // null = todas
-    lastFocus: null
+    lastFocus: null,
+    activeArtwork: null,
+    contactFallbackTimer: 0
   };
 
   try {
@@ -93,6 +112,14 @@
     return "";
   }
 
+  /**
+   * Bloquear qualquer origem que não seja um caminho relativo local.
+   *
+   * Threat model: `OBRAS` é conteúdo editável. Se aceitássemos `javascript:`,
+   * `data:` ou URLs externas aqui, um valor malicioso poderia executar script,
+   * vazar dados do visitante ou carregar rastreadores remotos. Por isso as
+   * imagens ficam restritas a arquivos locais dentro do próprio site.
+   */
   function safeImageSrc(src) {
     // Só caminhos relativos locais (ex: images/foo.jpg).
     if (typeof src !== "string") return "";
@@ -102,10 +129,112 @@
     return s;
   }
 
+  /**
+   * Aceita apenas candidatos de `srcset` com caminhos relativos locais.
+   *
+   * Threat model: `srcset` também aceita URLs arbitrárias. Validamos cada
+   * candidato individualmente para impedir imagens remotas ou esquemas
+   * executáveis vindos do conteúdo editável.
+   */
+  function safeSrcset(srcset) {
+    if (typeof srcset !== "string") return "";
+    return srcset.split(",").map(function (part) {
+      var chunk = part.trim();
+      if (!chunk) return "";
+      var pieces = chunk.split(/\s+/);
+      var safe = safeImageSrc(pieces[0]);
+      if (!safe) return "";
+      return safe + (pieces[1] ? " " + pieces[1] : "");
+    }).filter(Boolean).join(", ");
+  }
+
+  /**
+   * Links de compra só podem apontar para o domínio público do Stripe.
+   *
+   * Threat model: `stripeLink` também é conteúdo editável. Sem esta checagem,
+   * alguém poderia trocar o botão de compra por um link de phishing ou por
+   * outro destino capaz de capturar dados do visitante.
+   */
   function safeStripeLink(url) {
     if (typeof url !== "string") return "";
     var u = url.trim();
     return u.indexOf(STRIPE_PREFIX) === 0 ? u : "";
+  }
+
+  function absoluteUrl(path) {
+    if (!path) return "";
+    try {
+      return new URL(path, window.location.href).href;
+    } catch (e) {
+      return String(path);
+    }
+  }
+
+  function buildFallbackSrcset(src, widths) {
+    if (!src) return "";
+    return widths.map(function (width) {
+      return src + " " + width + "w";
+    }).join(", ");
+  }
+
+  function parsedArtworkSize(obra) {
+    var matches = typeof obra.dimensoes === "string" ? obra.dimensoes.match(/(\d+(?:[.,]\d+)?)/g) : null;
+    var width = matches && matches[0] ? Number(matches[0].replace(",", ".")) : NaN;
+    var height = matches && matches[1] ? Number(matches[1].replace(",", ".")) : NaN;
+    if (isFinite(width) && width > 0 && isFinite(height) && height > 0) {
+      return { width: Math.round(width * 10), height: Math.round(height * 10) };
+    }
+    return null;
+  }
+
+  function imageSize(obra) {
+    var width = Number(obra && obra.imagemLargura);
+    var height = Number(obra && obra.imagemAltura);
+    if (isFinite(width) && width > 0 && isFinite(height) && height > 0) {
+      return { width: Math.round(width), height: Math.round(height) };
+    }
+    var parsed = parsedArtworkSize(obra);
+    if (parsed) return parsed;
+    // Neutral square fallback to reserve space when the artwork data does not
+    // declare image dimensions or physical dimensions.
+    return { width: FALLBACK_IMAGE_DIMENSION, height: FALLBACK_IMAGE_DIMENSION };
+  }
+
+  function imageData(obra, widths) {
+    var src = safeImageSrc(obra.imagem);
+    var fallbackSrcset = safeSrcset(obra.imagemSrcset) || buildFallbackSrcset(src, widths);
+    var webpSrcset = safeSrcset(obra.imagemWebpSrcset);
+    if (!webpSrcset) {
+      var webpSrc = safeImageSrc(obra.imagemWebp);
+      if (webpSrc) webpSrcset = buildFallbackSrcset(webpSrc, widths);
+    }
+    return {
+      src: src,
+      srcset: fallbackSrcset,
+      webpSrcset: webpSrcset,
+      size: imageSize(obra)
+    };
+  }
+
+  function applyPicture(sourceEl, img, obra, options) {
+    var widths = options.widths || [320, 640, 960];
+    var data = imageData(obra, widths);
+    img.src = data.src;
+    img.srcset = data.srcset;
+    img.sizes = options.sizes;
+    img.width = data.size.width;
+    img.height = data.size.height;
+    img.loading = options.loading;
+    img.decoding = "async";
+
+    if (data.webpSrcset) {
+      sourceEl.srcset = data.webpSrcset;
+      sourceEl.sizes = options.sizes;
+      sourceEl.type = "image/webp";
+    } else {
+      sourceEl.removeAttribute("srcset");
+      sourceEl.removeAttribute("sizes");
+    }
   }
 
   function formatPrice(value) {
@@ -125,6 +254,72 @@
     return window.OBRAS.filter(function (o) {
       return o && typeof o === "object" && safeImageSrc(o.imagem) && localized(o.titulo);
     });
+  }
+
+  function artworkById(id) {
+    return validObras().filter(function (obra) {
+      return typeof obra.id === "string" && obra.id === id;
+    })[0] || null;
+  }
+
+  function pageUrl(obra) {
+    var url = window.location.pathname;
+    if (obra && typeof obra.id === "string") {
+      return url + "?obra=" + encodeURIComponent(obra.id);
+    }
+    return url;
+  }
+
+  function updateAddressBar(obra) {
+    if (!window.history || typeof window.history.replaceState !== "function") return;
+    try {
+      window.history.replaceState(null, "", pageUrl(obra));
+    } catch (e) { /* history unavailable */ }
+  }
+
+  function setMetaContent(id, content) {
+    var el = $(id);
+    if (el) el.setAttribute("content", content);
+  }
+
+  function applyPageMeta(obra) {
+    var title = t("siteTitle");
+    var description = t("siteDescription");
+    var image = absoluteUrl("images/logo.svg");
+    var url = absoluteUrl(pageUrl(null));
+
+    if (obra) {
+      title = localized(obra.titulo) + " — p.bione";
+      description = localized(obra.descricao) || description;
+      image = absoluteUrl(safeImageSrc(obra.imagem)) || image;
+      url = absoluteUrl(pageUrl(obra)) || url;
+    }
+
+    document.title = title;
+    var metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) metaDescription.setAttribute("content", description);
+    setMetaContent("meta-og-title", title);
+    setMetaContent("meta-og-description", description);
+    setMetaContent("meta-og-image", image);
+    setMetaContent("meta-og-url", url);
+    setMetaContent("meta-twitter-title", title);
+    setMetaContent("meta-twitter-description", description);
+    setMetaContent("meta-twitter-image", image);
+    var canonicalLink = $("canonical-link");
+    if (canonicalLink) canonicalLink.setAttribute("href", url);
+  }
+
+  function applyUiMetadata() {
+    applyPageMeta(state.activeArtwork);
+  }
+
+  function artworkFromLocation() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      return artworkById(params.get("obra"));
+    } catch (e) {
+      return null;
+    }
   }
 
   /* ---------- Séries ---------- */
@@ -167,10 +362,8 @@
   function renderGallery() {
     var gallery = $("gallery");
     gallery.textContent = "";
-
-    if (window.matchMedia && window.matchMedia("(hover: hover)").matches) {
-      gallery.classList.add("has-hover");
-    }
+    var canHover = window.matchMedia && window.matchMedia("(hover: hover)").matches;
+    gallery.classList.toggle("has-hover", !!canHover);
 
     validObras().forEach(function (obra) {
       if (state.serie && localized(obra.serie) !== state.serie) return;
@@ -178,13 +371,22 @@
       var card = document.createElement("button");
       card.type = "button";
       card.className = "artwork-card";
-      card.setAttribute("aria-label", localized(obra.titulo));
+      card.setAttribute("aria-label", localized(obra.titulo) + " — " + t("openArtwork"));
+
+      var picture = document.createElement("picture");
+      var webpSource = document.createElement("source");
+      webpSource.type = "image/webp";
+      picture.appendChild(webpSource);
 
       var img = document.createElement("img");
-      img.src = safeImageSrc(obra.imagem);
       img.alt = localized(obra.titulo);
-      img.loading = "lazy";
-      card.appendChild(img);
+      applyPicture(webpSource, img, obra, {
+        widths: [240, 480, 960],
+        sizes: "(max-width: 760px) calc(100vw - 2.4rem), (max-width: 1180px) 300px, 300px",
+        loading: "lazy"
+      });
+      picture.appendChild(img);
+      card.appendChild(picture);
 
       if (obra.vendido === true) {
         var sold = document.createElement("span");
@@ -213,10 +415,16 @@
   /* ---------- Janela flutuante da obra ---------- */
   function openArtwork(obra, trigger) {
     state.lastFocus = trigger || document.activeElement;
+    state.activeArtwork = obra;
 
+    var webp = $("artwork-webp");
     var img = $("artwork-img");
-    img.src = safeImageSrc(obra.imagem);
     img.alt = localized(obra.titulo);
+    applyPicture(webp, img, obra, {
+      widths: [480, 960, 1440],
+      sizes: "(max-width: 760px) calc(100vw - 2.8rem), 50vw",
+      loading: "eager"
+    });
 
     $("artwork-title").textContent = localized(obra.titulo);
     $("artwork-series").textContent = localized(obra.serie);
@@ -251,6 +459,8 @@
       soldBadge.hidden = true;
     }
 
+    applyPageMeta(obra);
+    updateAddressBar(obra);
     openOverlay("artwork-modal");
   }
 
@@ -284,7 +494,7 @@
     var mail = $("about-email");
     var email = typeof artista.email === "string" ? artista.email.trim() : "";
     // valida formato simples de e-mail antes de montar o mailto:
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (EMAIL_REGEX.test(email)) {
       mail.href = "mailto:" + encodeURIComponent(email).replace(/%40/g, "@");
       mail.hidden = false;
     } else {
@@ -303,10 +513,13 @@
   }
 
   function closeOverlays() {
+    state.activeArtwork = null;
     ["artwork-modal", "about-panel", "contact-panel"].forEach(function (id) {
       $(id).hidden = true;
     });
     document.body.style.overflow = "";
+    applyUiMetadata();
+    updateAddressBar(null);
     if (state.lastFocus && typeof state.lastFocus.focus === "function") {
       state.lastFocus.focus();
       state.lastFocus = null;
@@ -353,29 +566,80 @@
     $("send-btn").disabled = !contactFormValid();
   }
 
+  function resetContactFeedback() {
+    if (state.contactFallbackTimer) {
+      window.clearTimeout(state.contactFallbackTimer);
+      state.contactFallbackTimer = 0;
+    }
+    $("form-error").hidden = true;
+    $("form-success").hidden = true;
+    $("form-fallback").hidden = true;
+  }
+
+  function artistEmail() {
+    var artista = (window.ARTISTA && typeof window.ARTISTA === "object") ? window.ARTISTA : {};
+    var email = typeof artista.email === "string" ? artista.email.trim() : "";
+    return EMAIL_REGEX.test(email) ? email : "";
+  }
+
+  function prepareMailtoUrl(to, body) {
+    return "mailto:" + encodeURIComponent(to).replace(/%40/g, "@") +
+      "?subject=" + encodeURIComponent(t("mailSubject")) +
+      "&body=" + encodeURIComponent(body);
+  }
+
+  function showContactFallback(message, mailtoUrl, email) {
+    $("form-fallback-text").textContent = message + " ";
+    var link = $("form-fallback-link");
+    link.textContent = t("fFallbackLink");
+    if (mailtoUrl) {
+      link.href = mailtoUrl;
+      link.hidden = false;
+    } else {
+      link.hidden = true;
+      link.removeAttribute("href");
+    }
+    var emailEl = $("form-fallback-email");
+    emailEl.textContent = email;
+    emailEl.hidden = !email;
+    $("form-fallback").hidden = false;
+  }
+
   function initContactForm() {
     var form = $("contact-form");
 
     contactFields().forEach(function (el) {
-      el.addEventListener("input", refreshSendBtn);
+      el.addEventListener("input", function () {
+        resetContactFeedback();
+        refreshSendBtn();
+      });
     });
-    $("f-consent").addEventListener("change", refreshSendBtn);
+    $("f-consent").addEventListener("change", function () {
+      resetContactFeedback();
+      refreshSendBtn();
+    });
 
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       var errorEl = $("form-error");
       if (!contactFormValid()) {
+        resetContactFeedback();
         errorEl.textContent = t("fError");
         errorEl.hidden = false;
         return;
       }
-      errorEl.hidden = true;
+      resetContactFeedback();
 
       // Sem servidor: envia abrindo o app de e-mail do visitante (mailto).
       // Veja no README como trocar por um serviço de formulários (ex: Formspree).
-      var artista = (window.ARTISTA && typeof window.ARTISTA === "object") ? window.ARTISTA : {};
-      var to = typeof artista.email === "string" ? artista.email.trim() : "";
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return;
+      var to = artistEmail();
+      if (!to) {
+        var mailError = t("fMailError");
+        errorEl.textContent = mailError;
+        errorEl.hidden = false;
+        showContactFallback(mailError, "", "");
+        return;
+      }
 
       var body =
         t("fName") + ": " + $("f-nome").value.trim() + "\n" +
@@ -385,13 +649,23 @@
         t("fMessage") + ":\n" + $("f-mensagem").value.trim() + "\n\n" +
         "[" + t("fConsent") + "]";
 
-      window.location.href = "mailto:" + encodeURIComponent(to).replace(/%40/g, "@") +
-        "?subject=" + encodeURIComponent(t("mailSubject")) +
-        "&body=" + encodeURIComponent(body);
+      var mailtoUrl = prepareMailtoUrl(to, body);
+      try {
+        window.location.href = mailtoUrl;
+        $("form-success").textContent = t("fSuccess");
+        $("form-success").hidden = false;
+        state.contactFallbackTimer = window.setTimeout(function () {
+          state.contactFallbackTimer = 0;
+          showContactFallback(t("fFallback"), mailtoUrl, to);
+        }, CONTACT_FALLBACK_DELAY_MS);
+      } catch (e) {
+        errorEl.textContent = t("fMailError");
+        errorEl.hidden = false;
+        showContactFallback(t("fMailError"), mailtoUrl, to);
+      }
 
       form.reset();
       refreshSendBtn();
-      closeOverlays();
     });
   }
 
@@ -405,7 +679,7 @@
     $("lbl-mensagem").textContent = t("fMessage");
     $("lbl-consent").textContent = t("fConsent");
     $("send-btn").textContent = t("fSend");
-    $("form-error").hidden = true;
+    resetContactFeedback();
     $("contact-btn").setAttribute("aria-label", t("contactTooltip"));
   }
 
@@ -414,11 +688,13 @@
     document.documentElement.lang = t("htmlLang");
     $("lang-toggle").textContent = t("langBtn");
     $("about-btn-label").textContent = t("aboutLabel");
+    $("about-btn").setAttribute("aria-label", t("aboutLabel"));
     $("footer-note").textContent = t("footer");
     $("terms-link").textContent = t("terms");
     applyContactLang();
     fillAbout();
     renderAll();
+    applyUiMetadata();
   }
 
   function toggleLang() {
@@ -446,6 +722,7 @@
 
     $("contact-btn").addEventListener("click", function () {
       state.lastFocus = $("contact-btn");
+      resetContactFeedback();
       openOverlay("contact-panel");
     });
 
@@ -459,5 +736,8 @@
     });
 
     applyLang();
+
+    var linkedArtwork = artworkFromLocation();
+    if (linkedArtwork) openArtwork(linkedArtwork);
   });
 })();

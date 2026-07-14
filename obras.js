@@ -4,6 +4,9 @@
    Para ADICIONAR uma obra:
      1. Coloque a foto na pasta  images/  (ex: images/minha-obra.jpg)
      2. Copie um bloco { ... } abaixo, cole antes do ']' final e edite.
+     3. Opcional para performance: informe `imagemLargura` /
+        `imagemAltura`, `imagemSrcset` e `imagemWebp` (ou
+        `imagemWebpSrcset`) quando tiver versões otimizadas da mesma foto.
    Para REMOVER uma obra: apague o bloco { ... } dela (com a vírgula).
    Para marcar como VENDIDA:  vendido: true
 
