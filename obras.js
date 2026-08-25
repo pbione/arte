@@ -122,8 +122,8 @@ var ARTISTA = {
   // Coloque sua foto na pasta images/ e ajuste o nome aqui.
   foto: "images/perfil.svg",
   bio: {
-    pt: "Sou p.bione, artista autoral. Escreva aqui a sua biografia: sua trajetória, o que move o seu trabalho e onde você cria.",
-    en: "I am p.bione, an independent artist. Write your biography here: your journey, what drives your work and where you create."
+    pt: "Sou pbione, pintor autodidata. Trabalho a partir da perspectiva de um balão — não tão alto a ponto de perder o chão — observando as cidades brasileiras e suas complexidades. Uso cores vibrantes, sem sombra, delimitadas por contornos pretos: formas abstratas que se equilibram entre si, como as próprias cidades que retrato. Não busco explicar as cidades que pinto — busco encantar, convidar quem vê a flutuar comigo por um instante sobre esse caos colorido que é viver.",
+    en: "I am pbione, a self-taught painter. I work from the perspective of a hot air balloon — never so high that I lose sight of the ground — observing Brazilian cities and their complexities. I use vibrant, shadowless colors bound by black outlines: abstract forms balanced against each other, much like the cities I paint. I don't aim to explain the cities I depict — I aim to enchant, inviting the viewer to float with me for a moment above the colorful chaos of living."
   },
   instagram: "https://instagram.com/p.bione",
   email: "p.bione@gmail.com"
