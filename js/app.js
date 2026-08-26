@@ -127,11 +127,15 @@
     });
   }
 
-  /* Tamanho de exibição proporcional à área real da tela (cm),
-     não ao tamanho real: só para que a obra maior ocupe mais espaço.
-     Faixa 60%–100% da largura da coluna, escala por raiz quadrada da área. */
-  var SIZE_SCALE_MIN = 60;
-  var SIZE_SCALE_MAX = 100;
+  /* Tamanho de exibição proporcional à ÁREA REAL da tela (cm), não ao
+     tamanho real em pixels: a obra maior deve ocupar mais espaço visível
+     que as menores. Como as obras têm proporções (largura/altura) bem
+     diferentes entre si, escalar só a largura não basta — uma tela
+     panorâmica pode ficar "baixa" mesmo estando em 100% da coluna.
+     Por isso o fator de escala é calculado para que a ÁREA exibida
+     (largura_px × altura_px) fique proporcional à área real em cm²,
+     usando a maior obra do conjunto como referência (100% da coluna). */
+  var SIZE_SCALE_FLOOR = 42; // não deixa nenhuma obra pequena demais para apreciar
 
   function obraArea(o) {
     var l = Number(o && o.larguraCm);
@@ -140,11 +144,22 @@
     return l * a;
   }
 
-  function sizeScale(obra, maxArea) {
+  function obraAspect(o) {
+    var l = Number(o && o.larguraCm);
+    var a = Number(o && o.alturaCm);
+    if (!isFinite(l) || !isFinite(a) || l <= 0 || a <= 0) return null;
+    return l / a;
+  }
+
+  function sizeScale(obra, referencia) {
     var area = obraArea(obra);
-    if (!area || !maxArea) return null;
-    var ratio = Math.sqrt(area / maxArea);
-    return Math.round(SIZE_SCALE_MIN + (SIZE_SCALE_MAX - SIZE_SCALE_MIN) * ratio);
+    var aspect = obraAspect(obra);
+    var refArea = referencia && obraArea(referencia);
+    var refAspect = referencia && obraAspect(referencia);
+    if (!area || !aspect || !refArea || !refAspect) return null;
+    var ratio = Math.sqrt((area / refArea) * (aspect / refAspect));
+    var pct = Math.round(100 * ratio);
+    return Math.max(SIZE_SCALE_FLOOR, Math.min(100, pct));
   }
 
   /* ---------- Séries ---------- */
@@ -195,10 +210,10 @@
     var visiveis = validObras().filter(function (obra) {
       return !state.serie || localized(obra.serie) === state.serie;
     });
-    var maxArea = visiveis.reduce(function (max, obra) {
+    var referencia = visiveis.reduce(function (maior, obra) {
       var area = obraArea(obra);
-      return area && area > max ? area : max;
-    }, 0);
+      return area && (!maior || area > obraArea(maior)) ? obra : maior;
+    }, null);
 
     visiveis.forEach(function (obra) {
       var card = document.createElement("button");
@@ -210,7 +225,7 @@
       img.src = safeImageSrc(obra.imagem);
       img.alt = localized(obra.titulo);
       img.loading = "lazy";
-      var scale = sizeScale(obra, maxArea);
+      var scale = sizeScale(obra, referencia);
       if (scale) img.style.width = scale + "%";
       card.appendChild(img);
 
