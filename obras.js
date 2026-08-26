@@ -29,7 +29,7 @@ var OBRAS = [
     larguraCm: 100,
     alturaCm: 70,
     ano: 2024,
-    preco: 0,
+    preco: 500,
     imagem: "images/pensamentos.jpg",
     stripeLink: "",
     vendido: false
@@ -47,7 +47,7 @@ var OBRAS = [
     larguraCm: 200,
     alturaCm: 90,
     ano: 2024,
-    preco: 0,
+    preco: 800,
     imagem: "images/jardim.jpg",
     stripeLink: "",
     vendido: false
@@ -65,7 +65,7 @@ var OBRAS = [
     larguraCm: 100,
     alturaCm: 70,
     ano: 2025,
-    preco: 0,
+    preco: 500,
     imagem: "images/caos-2025.jpg",
     stripeLink: "",
     vendido: false
@@ -83,7 +83,7 @@ var OBRAS = [
     larguraCm: 70,
     alturaCm: 50,
     ano: 2025,
-    preco: 0,
+    preco: 400,
     imagem: "images/celulas-8.jpg",
     stripeLink: "",
     vendido: false
@@ -101,7 +101,7 @@ var OBRAS = [
     larguraCm: 70,
     alturaCm: 50,
     ano: 2025,
-    preco: 0,
+    preco: 400,
     imagem: "images/celulas-9.jpg",
     stripeLink: "",
     vendido: false
@@ -119,7 +119,7 @@ var OBRAS = [
     larguraCm: 70,
     alturaCm: 50,
     ano: 2025,
-    preco: 0,
+    preco: 400,
     imagem: "images/celulas-10.jpg",
     stripeLink: "",
     vendido: false
@@ -137,7 +137,7 @@ var OBRAS = [
     larguraCm: 100,
     alturaCm: 70,
     ano: 2019,
-    preco: 0,
+    preco: 500,
     imagem: "images/calor.jpg",
     stripeLink: "",
     vendido: false

@@ -226,6 +226,7 @@
       var aspect = obraAspect(obra) || 1.3;
       card.dataset.scale = scale;
       card.dataset.aspect = aspect;
+      card.dataset.jitter = jitterFor(obra.id);
 
       var img = document.createElement("img");
       img.src = safeImageSrc(obra.imagem);
@@ -259,12 +260,27 @@
     layoutMasonry();
   }
 
+  /* Hash estável (string -> [0,1)) para variações "orgânicas" que não
+     mudam a cada re-render, só quando a própria obra muda. */
+  function hash01(str) {
+    var h = 5381;
+    str = String(str || "");
+    for (var i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
+    return ((h >>> 0) % 10000) / 10000;
+  }
+  function jitterFor(id) {
+    return hash01(id) + ":" + hash01(id + "#h");
+  }
+
   /* Parede de obras: posicionamento livre em colunas, cada card na
      coluna mais baixa no momento (bin-packing simples), respeitando
      a forma/proporção real de cada obra. Espaçamento reduzido para
-     ficarem "juntinhos", como quadros pendurados lado a lado. */
+     ficarem "juntinhos", como quadros pendurados lado a lado — com
+     leve rotação e deslocamento horizontal para fugir da grade. */
   var MASONRY_GAP = 12; // px
   var MASONRY_BASE_COL = 230; // px, largura de referência da coluna (100% de escala)
+  var MASONRY_MAX_ROTATE = 1.6; // graus
+  var MASONRY_JITTER_Y = 6; // px, sobreposição de topo não permitida (menor que o gap)
 
   function layoutMasonry() {
     var gallery = $("gallery");
@@ -281,6 +297,10 @@
     cards.forEach(function (card) {
       var scale = parseFloat(card.dataset.scale) / 100;
       var aspect = parseFloat(card.dataset.aspect);
+      var jitterParts = String(card.dataset.jitter || "0:0").split(":");
+      var jx = parseFloat(jitterParts[0]) || 0;
+      var jy = parseFloat(jitterParts[1]) || 0;
+
       var w = colWidth * scale;
       var imgH = w / aspect;
       var captionH = card.querySelector(".card-caption") ? 28 : 0;
@@ -291,17 +311,20 @@
         if (colHeights[i] < colHeights[colIndex]) colIndex = i;
       }
 
-      var left = colIndex * (colWidth + MASONRY_GAP) + (colWidth - w) / 2;
-      var top = colHeights[colIndex];
+      var slack = Math.max(0, colWidth - w);
+      var left = colIndex * (colWidth + MASONRY_GAP) + slack * jx;
+      var top = colHeights[colIndex] + jy * MASONRY_JITTER_Y;
+      var rotate = (jx - 0.5) * 2 * MASONRY_MAX_ROTATE;
 
       card.style.width = w + "px";
       card.style.left = left + "px";
       card.style.top = top + "px";
+      card.style.transform = "rotate(" + rotate.toFixed(2) + "deg)";
 
-      colHeights[colIndex] = top + h + MASONRY_GAP;
+      colHeights[colIndex] = colHeights[colIndex] + h + MASONRY_GAP;
     });
 
-    gallery.style.height = Math.max.apply(null, colHeights) + "px";
+    gallery.style.height = (Math.max.apply(null, colHeights) + MASONRY_JITTER_Y) + "px";
   }
 
   var masonryResizeTimer = null;
@@ -309,6 +332,7 @@
     clearTimeout(masonryResizeTimer);
     masonryResizeTimer = setTimeout(layoutMasonry, 150);
   });
+  window.addEventListener("load", layoutMasonry);
 
   /* ---------- Janela flutuante da obra ---------- */
   function openArtwork(obra, trigger) {
