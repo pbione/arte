@@ -127,39 +127,13 @@
     });
   }
 
-  /* Tamanho de exibição proporcional à ÁREA REAL da tela (cm), não ao
-     tamanho real em pixels: a obra maior deve ocupar mais espaço visível
-     que as menores. Como as obras têm proporções (largura/altura) bem
-     diferentes entre si, escalar só a largura não basta — uma tela
-     panorâmica pode ficar "baixa" mesmo estando em 100% da coluna.
-     Por isso o fator de escala é calculado para que a ÁREA exibida
-     (largura_px × altura_px) fique proporcional à área real em cm²,
-     usando a maior obra do conjunto como referência (100% da coluna). */
-  var SIZE_SCALE_FLOOR = 42; // não deixa nenhuma obra pequena demais para apreciar
-
-  function obraArea(o) {
-    var l = Number(o && o.larguraCm);
-    var a = Number(o && o.alturaCm);
-    if (!isFinite(l) || !isFinite(a) || l <= 0 || a <= 0) return null;
-    return l * a;
-  }
-
+  /* Proporção real (largura/altura, em cm) — usada só para decidir se a
+     obra é "panorâmica" o bastante para ocupar a linha inteira. */
   function obraAspect(o) {
     var l = Number(o && o.larguraCm);
     var a = Number(o && o.alturaCm);
     if (!isFinite(l) || !isFinite(a) || l <= 0 || a <= 0) return null;
     return l / a;
-  }
-
-  function sizeScale(obra, referencia) {
-    var area = obraArea(obra);
-    var aspect = obraAspect(obra);
-    var refArea = referencia && obraArea(referencia);
-    var refAspect = referencia && obraAspect(referencia);
-    if (!area || !aspect || !refArea || !refAspect) return null;
-    var ratio = Math.sqrt((area / refArea) * (aspect / refAspect));
-    var pct = Math.round(100 * ratio);
-    return Math.max(SIZE_SCALE_FLOOR, Math.min(100, pct));
   }
 
   /* ---------- Séries ---------- */
@@ -199,10 +173,11 @@
   }
 
   /* ---------- Galeria ---------- */
+  var WIDE_ASPECT_THRESHOLD = 1.8; // largura/altura acima disso = ocupa a linha toda
+
   function renderGallery() {
     var gallery = $("gallery");
     gallery.textContent = "";
-    gallery.style.height = "";
 
     if (window.matchMedia && window.matchMedia("(hover: hover)").matches) {
       gallery.classList.add("has-hover");
@@ -211,10 +186,6 @@
     var visiveis = validObras().filter(function (obra) {
       return !state.serie || localized(obra.serie) === state.serie;
     });
-    var referencia = visiveis.reduce(function (maior, obra) {
-      var area = obraArea(obra);
-      return area && (!maior || area > obraArea(maior)) ? obra : maior;
-    }, null);
 
     visiveis.forEach(function (obra) {
       var card = document.createElement("button");
@@ -222,11 +193,10 @@
       card.className = "artwork-card";
       card.setAttribute("aria-label", localized(obra.titulo));
 
-      var scale = sizeScale(obra, referencia) || 100;
-      var aspect = obraAspect(obra) || 1.3;
-      card.dataset.scale = scale;
-      card.dataset.aspect = aspect;
-      card.dataset.jitter = jitterFor(obra.id);
+      var aspect = obraAspect(obra);
+      if (aspect && aspect >= WIDE_ASPECT_THRESHOLD) {
+        card.classList.add("is-wide");
+      }
 
       var img = document.createElement("img");
       img.src = safeImageSrc(obra.imagem);
@@ -256,83 +226,7 @@
 
       gallery.appendChild(card);
     });
-
-    layoutMasonry();
   }
-
-  /* Hash estável (string -> [0,1)) para variações "orgânicas" que não
-     mudam a cada re-render, só quando a própria obra muda. */
-  function hash01(str) {
-    var h = 5381;
-    str = String(str || "");
-    for (var i = 0; i < str.length; i++) h = ((h << 5) + h) + str.charCodeAt(i);
-    return ((h >>> 0) % 10000) / 10000;
-  }
-  function jitterFor(id) {
-    return hash01(id) + ":" + hash01(id + "#h");
-  }
-
-  /* Parede de obras: posicionamento livre em colunas, cada card na
-     coluna mais baixa no momento (bin-packing simples), respeitando
-     a forma/proporção real de cada obra. Espaçamento reduzido para
-     ficarem "juntinhos", como quadros pendurados lado a lado — com
-     leve rotação e deslocamento horizontal para fugir da grade. */
-  var MASONRY_GAP = 12; // px
-  var MASONRY_BASE_COL = 230; // px, largura de referência da coluna (100% de escala)
-  var MASONRY_MAX_ROTATE = 1.6; // graus
-  var MASONRY_JITTER_Y = 6; // px, sobreposição de topo não permitida (menor que o gap)
-
-  function layoutMasonry() {
-    var gallery = $("gallery");
-    var cards = Array.prototype.slice.call(gallery.querySelectorAll(".artwork-card"));
-    if (!cards.length) { gallery.style.height = "0px"; return; }
-
-    var containerWidth = gallery.clientWidth;
-    if (!containerWidth) return;
-
-    var columns = Math.max(1, Math.floor((containerWidth + MASONRY_GAP) / (MASONRY_BASE_COL + MASONRY_GAP)));
-    var colWidth = (containerWidth - MASONRY_GAP * (columns - 1)) / columns;
-    var colHeights = new Array(columns).fill(0);
-
-    cards.forEach(function (card) {
-      var scale = parseFloat(card.dataset.scale) / 100;
-      var aspect = parseFloat(card.dataset.aspect);
-      var jitterParts = String(card.dataset.jitter || "0:0").split(":");
-      var jx = parseFloat(jitterParts[0]) || 0;
-      var jy = parseFloat(jitterParts[1]) || 0;
-
-      var w = colWidth * scale;
-      var imgH = w / aspect;
-      var captionH = card.querySelector(".card-caption") ? 28 : 0;
-      var h = imgH + captionH;
-
-      var colIndex = 0;
-      for (var i = 1; i < columns; i++) {
-        if (colHeights[i] < colHeights[colIndex]) colIndex = i;
-      }
-
-      var slack = Math.max(0, colWidth - w);
-      var left = colIndex * (colWidth + MASONRY_GAP) + slack * jx;
-      var top = colHeights[colIndex] + jy * MASONRY_JITTER_Y;
-      var rotate = (jx - 0.5) * 2 * MASONRY_MAX_ROTATE;
-
-      card.style.width = w + "px";
-      card.style.left = left + "px";
-      card.style.top = top + "px";
-      card.style.transform = "rotate(" + rotate.toFixed(2) + "deg)";
-
-      colHeights[colIndex] = colHeights[colIndex] + h + MASONRY_GAP;
-    });
-
-    gallery.style.height = (Math.max.apply(null, colHeights) + MASONRY_JITTER_Y) + "px";
-  }
-
-  var masonryResizeTimer = null;
-  window.addEventListener("resize", function () {
-    clearTimeout(masonryResizeTimer);
-    masonryResizeTimer = setTimeout(layoutMasonry, 150);
-  });
-  window.addEventListener("load", layoutMasonry);
 
   /* ---------- Janela flutuante da obra ---------- */
   function openArtwork(obra, trigger) {
