@@ -17,98 +17,114 @@
 
 var OBRAS = [
   {
-    id: "serie-i-01",
-    serie: { pt: "Série I", en: "Series I" },
-    titulo: { pt: "Sem título nº 1", en: "Untitled No. 1" },
+    id: "imperfeitos-02",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Pensamentos", en: "Thoughts" },
     descricao: {
-      pt: "Descrição da obra: inspiração, processo e o que ela representa. Edite este texto no arquivo obras.js.",
-      en: "Artwork description: inspiration, process and meaning. Edit this text in the obras.js file."
-    },
-    tecnica: { pt: "Acrílica sobre tela", en: "Acrylic on canvas" },
-    dimensoes: "60 × 80 cm",
-    ano: 2026,
-    preco: 450, // em USD, só números
-    imagem: "images/caos.png",
-    stripeLink: "https://buy.stripe.com/bJe6oB4sygQi4oNdf17Vm00",
-    vendido: false
-  },
-  {
-    id: "serie-i-02",
-    serie: { pt: "Série I", en: "Series I" },
-    titulo: { pt: "Sem título nº 2", en: "Untitled No. 2" },
-    descricao: {
-      pt: "Descrição da segunda obra. Substitua pelas suas palavras.",
-      en: "Description of the second artwork. Replace with your own words."
+      pt: "Pensamentos que saem à prática. Uma analogia ao pensar e transformar.",
+      en: "Thoughts turning into action. An analogy between thinking and transforming."
     },
     tecnica: { pt: "Óleo sobre tela", en: "Oil on canvas" },
-    dimensoes: "50 × 70 cm",
-    ano: 2026,
-    preco: 380,
-    imagem: "images/obra2.svg",
+    dimensoes: "",
+    ano: 2024,
+    preco: 0,
+    imagem: "images/pensamentos.jpg",
     stripeLink: "",
     vendido: false
   },
   {
-    id: "serie-i-03",
-    serie: { pt: "Série I", en: "Series I" },
-    titulo: { pt: "Sem título nº 3", en: "Untitled No. 3" },
+    id: "imperfeitos-03",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Jardim", en: "Garden" },
     descricao: {
-      pt: "Descrição da terceira obra.",
-      en: "Description of the third artwork."
+      pt: "Um lugar perfeito não é branco e negro; tem flores e se pode caminhar descalço.",
+      en: "A perfect place isn't black and white; it has flowers and you can walk barefoot."
     },
-    tecnica: { pt: "Técnica mista", en: "Mixed media" },
-    dimensoes: "40 × 40 cm",
+    tecnica: { pt: "Óleo sobre tela", en: "Oil on canvas" },
+    dimensoes: "",
+    ano: 2024,
+    preco: 0,
+    imagem: "images/jardim.jpg",
+    stripeLink: "",
+    vendido: false
+  },
+  {
+    id: "imperfeitos-06",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Caos", en: "Chaos" },
+    descricao: {
+      pt: "A ingenuidade de visitar lugares cheios de gente.",
+      en: "The naivety of visiting places full of people."
+    },
+    tecnica: { pt: "Óleo sobre tela", en: "Oil on canvas" },
+    dimensoes: "",
     ano: 2025,
-    preco: 290,
-    imagem: "images/obra3.svg",
+    preco: 0,
+    imagem: "images/caos-2025.jpg",
     stripeLink: "",
     vendido: false
   },
   {
-    id: "serie-i-04",
-    serie: { pt: "Série I", en: "Series I" },
-    titulo: { pt: "Sem título nº 4", en: "Untitled No. 4" },
+    id: "imperfeitos-08",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Células #8", en: "Cells #8" },
     descricao: {
-      pt: "Descrição da quarta obra.",
-      en: "Description of the fourth artwork."
+      pt: "Origem da vida, há muita coisa em jogo, muitos sentimentos e trajetória.",
+      en: "The origin of life — so much at stake, so many feelings and paths."
     },
-    tecnica: { pt: "Acrílica sobre tela", en: "Acrylic on canvas" },
-    dimensoes: "70 × 100 cm",
+    tecnica: { pt: "Acrílico sobre tela", en: "Acrylic on canvas" },
+    dimensoes: "",
     ano: 2025,
-    preco: 620,
-    imagem: "images/obra4.svg",
-    stripeLink: "",
-    vendido: true // exemplo de obra vendida
-  },
-  {
-    id: "serie-ii-01",
-    serie: { pt: "Série II", en: "Series II" },
-    titulo: { pt: "Estudo nº 1", en: "Study No. 1" },
-    descricao: {
-      pt: "Primeira obra da segunda série.",
-      en: "First artwork of the second series."
-    },
-    tecnica: { pt: "Aquarela", en: "Watercolor" },
-    dimensoes: "30 × 42 cm",
-    ano: 2026,
-    preco: 180,
-    imagem: "images/obra5.svg",
+    preco: 0,
+    imagem: "images/celulas-8.jpg",
     stripeLink: "",
     vendido: false
   },
   {
-    id: "serie-ii-02",
-    serie: { pt: "Série II", en: "Series II" },
-    titulo: { pt: "Estudo nº 2", en: "Study No. 2" },
+    id: "imperfeitos-09",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Células #9", en: "Cells #9" },
     descricao: {
-      pt: "Segunda obra da segunda série.",
-      en: "Second artwork of the second series."
+      pt: "Origem da vida, há muita coisa em jogo, muitos sentimentos e trajetória.",
+      en: "The origin of life — so much at stake, so many feelings and paths."
     },
-    tecnica: { pt: "Aquarela", en: "Watercolor" },
-    dimensoes: "30 × 42 cm",
-    ano: 2026,
-    preco: 180,
-    imagem: "images/obra6.svg",
+    tecnica: { pt: "Acrílico sobre tela", en: "Acrylic on canvas" },
+    dimensoes: "",
+    ano: 2025,
+    preco: 0,
+    imagem: "images/celulas-9.jpg",
+    stripeLink: "",
+    vendido: false
+  },
+  {
+    id: "imperfeitos-10",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Células #10", en: "Cells #10" },
+    descricao: {
+      pt: "Origem da vida, há muita coisa em jogo, muitos sentimentos e trajetória.",
+      en: "The origin of life — so much at stake, so many feelings and paths."
+    },
+    tecnica: { pt: "Acrílico sobre tela", en: "Acrylic on canvas" },
+    dimensoes: "",
+    ano: 2025,
+    preco: 0,
+    imagem: "images/celulas-10.jpg",
+    stripeLink: "",
+    vendido: false
+  },
+  {
+    id: "imperfeitos-11",
+    serie: { pt: "Imperfeitos", en: "Imperfect" },
+    titulo: { pt: "Calor", en: "Heat" },
+    descricao: {
+      pt: "Cores quentes organizadas em um grande deserto de gente.",
+      en: "Warm colors arranged across a vast desert of people."
+    },
+    tecnica: { pt: "Óleo sobre tela", en: "Oil on canvas" },
+    dimensoes: "",
+    ano: 2019,
+    preco: 0,
+    imagem: "images/calor.jpg",
     stripeLink: "",
     vendido: false
   }

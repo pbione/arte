@@ -134,20 +134,22 @@ body {
   max-width: 1180px;
   margin: 0 auto;
   padding: 2.2rem 2rem 6rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
-  justify-content: center;
-  align-content: start;
-  gap: 3rem 2.6rem;
+  column-width: 260px;
+  column-gap: 2.6rem;
 }
 
 .artwork-card {
   position: relative;
+  display: block;
+  width: 100%;
   cursor: pointer;
   border: none;
   background: none;
   padding: 0;
   text-align: center;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin: 0 0 3rem;
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
@@ -547,7 +549,8 @@ body {
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 760px) {
-  .gallery { padding: 1.6rem 1.2rem 6rem; gap: 2.4rem 1.6rem; }
+  .gallery { padding: 1.6rem 1.2rem 6rem; column-width: auto; column-count: 1; }
+  .artwork-card { margin-bottom: 2.4rem; }
   .artwork-layout { grid-template-columns: 1fr; gap: 1.6rem; }
   .panel { padding: 1.8rem 1.4rem; }
   .about-label { display: none; }
