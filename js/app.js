@@ -127,15 +127,6 @@
     });
   }
 
-  /* Proporção real (largura/altura, em cm) — usada só para decidir se a
-     obra é "panorâmica" o bastante para ocupar a linha inteira. */
-  function obraAspect(o) {
-    var l = Number(o && o.larguraCm);
-    var a = Number(o && o.alturaCm);
-    if (!isFinite(l) || !isFinite(a) || l <= 0 || a <= 0) return null;
-    return l / a;
-  }
-
   /* ---------- Séries ---------- */
   function seriesList() {
     var seen = [];
@@ -173,8 +164,6 @@
   }
 
   /* ---------- Galeria ---------- */
-  var WIDE_ASPECT_THRESHOLD = 1.8; // largura/altura acima disso = ocupa a linha toda
-
   function renderGallery() {
     var gallery = $("gallery");
     gallery.textContent = "";
@@ -192,11 +181,6 @@
       card.type = "button";
       card.className = "artwork-card";
       card.setAttribute("aria-label", localized(obra.titulo));
-
-      var aspect = obraAspect(obra);
-      if (aspect && aspect >= WIDE_ASPECT_THRESHOLD) {
-        card.classList.add("is-wide");
-      }
 
       var img = document.createElement("img");
       img.src = safeImageSrc(obra.imagem);

@@ -127,24 +127,26 @@ body {
   border-bottom-color: var(--ink);
 }
 
-/* ---------- Galeria: duas colunas, panorâmicos ocupam a linha toda ---------- */
+/* ---------- Galeria: altura fixa por linha (vh), largura segue a
+   proporção real de cada obra — pensado para caber sem precisar
+   rolar a página em telas de laptop/desktop comuns. ---------- */
 .gallery {
   flex: 1;
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 1.6rem 1.2rem 6rem;
+  padding: 0.8rem 1.2rem 1.4rem;
   box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   align-items: flex-start;
-  gap: 14px;
+  gap: 8px;
 }
 
 .artwork-card {
   display: block;
-  flex: 1 1 calc(50% - 7px);
-  max-width: calc(50% - 7px);
+  flex: 0 0 auto;
   box-sizing: border-box;
   cursor: pointer;
   border: none;
@@ -155,18 +157,15 @@ body {
   transition: transform 0.35s ease, opacity 0.35s ease;
 }
 
-.artwork-card.is-wide {
-  flex-basis: 100%;
-  max-width: 100%;
-}
-
 .artwork-card img {
-  width: 100%;
-  height: auto;
   display: block;
+  height: 22vh;
+  width: auto;
+  max-width: 70vw;
+  object-fit: contain;
   box-sizing: border-box;
   background: #fff;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid var(--line);
   box-shadow: var(--frame-shadow);
   transition: box-shadow 0.35s ease;
@@ -174,9 +173,9 @@ body {
 
 .card-caption {
   display: block;
-  margin-top: 0.5rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.07em;
+  margin-top: 0.3rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
   transition: opacity 0.3s ease;
 }
@@ -584,8 +583,8 @@ body {
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 760px) {
-  .gallery { padding: 1.6rem 1.2rem 6rem; gap: 10px; }
-  .artwork-card { flex-basis: 100%; max-width: 100%; }
+  .gallery { padding: 1rem 1rem 2rem; gap: 8px; }
+  .artwork-card img { height: 20vh; max-width: 88vw; }
   .artwork-layout { grid-template-columns: 1fr; gap: 1.6rem; }
   .panel { padding: 1.8rem 1.4rem; }
   .about-label { display: none; }
