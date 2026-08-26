@@ -127,48 +127,46 @@ body {
   border-bottom-color: var(--ink);
 }
 
-/* ---------- Galeria ---------- */
+/* ---------- Galeria: parede de obras, posicionamento livre (JS) ---------- */
 .gallery {
-  flex: 1;
+  position: relative;
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 2.2rem 2rem 6rem;
-  column-width: 260px;
-  column-gap: 2.6rem;
+  padding: 1.6rem 1.2rem 6rem;
 }
 
 .artwork-card {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
-  width: 100%;
   cursor: pointer;
   border: none;
   background: none;
   padding: 0;
+  margin: 0;
   text-align: center;
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-  margin: 0 0 3rem;
-  transition: transform 0.35s ease, opacity 0.35s ease;
+  transition: left 0.35s ease, top 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
 }
 
 .artwork-card img {
   width: 100%;
   height: auto;
   display: block;
-  margin: 0 auto;
+  box-sizing: border-box;
   background: #fff;
-  padding: 10px;
+  padding: 8px;
   border: 1px solid var(--line);
   box-shadow: var(--frame-shadow);
-  transition: box-shadow 0.35s ease, width 0.35s ease;
+  transition: box-shadow 0.35s ease;
 }
 
 .card-caption {
-  margin-top: 0.8rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
   color: var(--ink-soft);
   transition: opacity 0.3s ease;
 }
@@ -429,6 +427,32 @@ body {
 }
 .contact-link:hover { opacity: 0.6; }
 
+.statement-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+.statement-link:hover { opacity: 1; }
+.bulb-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  color: var(--ink-soft);
+  transition: color 0.2s ease;
+}
+.bulb-icon path,
+.bulb-icon line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.statement-link:hover .bulb-icon,
+.statement-link:focus-visible .bulb-icon {
+  color: #f2c14e;
+}
+
 /* ---------- Botão de contato (telefone retrô) ---------- */
 .contact-btn {
   position: fixed;
@@ -550,8 +574,7 @@ body {
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 760px) {
-  .gallery { padding: 1.6rem 1.2rem 6rem; column-width: auto; column-count: 1; }
-  .artwork-card { margin-bottom: 2.4rem; }
+  .gallery { padding: 1.6rem 1.2rem 6rem; }
   .artwork-layout { grid-template-columns: 1fr; gap: 1.6rem; }
   .panel { padding: 1.8rem 1.4rem; }
   .about-label { display: none; }

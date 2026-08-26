@@ -202,6 +202,7 @@
   function renderGallery() {
     var gallery = $("gallery");
     gallery.textContent = "";
+    gallery.style.height = "";
 
     if (window.matchMedia && window.matchMedia("(hover: hover)").matches) {
       gallery.classList.add("has-hover");
@@ -221,12 +222,15 @@
       card.className = "artwork-card";
       card.setAttribute("aria-label", localized(obra.titulo));
 
+      var scale = sizeScale(obra, referencia) || 100;
+      var aspect = obraAspect(obra) || 1.3;
+      card.dataset.scale = scale;
+      card.dataset.aspect = aspect;
+
       var img = document.createElement("img");
       img.src = safeImageSrc(obra.imagem);
       img.alt = localized(obra.titulo);
       img.loading = "lazy";
-      var scale = sizeScale(obra, referencia);
-      if (scale) img.style.width = scale + "%";
       card.appendChild(img);
 
       if (obra.vendido === true) {
@@ -251,7 +255,60 @@
 
       gallery.appendChild(card);
     });
+
+    layoutMasonry();
   }
+
+  /* Parede de obras: posicionamento livre em colunas, cada card na
+     coluna mais baixa no momento (bin-packing simples), respeitando
+     a forma/proporção real de cada obra. Espaçamento reduzido para
+     ficarem "juntinhos", como quadros pendurados lado a lado. */
+  var MASONRY_GAP = 12; // px
+  var MASONRY_BASE_COL = 230; // px, largura de referência da coluna (100% de escala)
+
+  function layoutMasonry() {
+    var gallery = $("gallery");
+    var cards = Array.prototype.slice.call(gallery.querySelectorAll(".artwork-card"));
+    if (!cards.length) { gallery.style.height = "0px"; return; }
+
+    var containerWidth = gallery.clientWidth;
+    if (!containerWidth) return;
+
+    var columns = Math.max(1, Math.floor((containerWidth + MASONRY_GAP) / (MASONRY_BASE_COL + MASONRY_GAP)));
+    var colWidth = (containerWidth - MASONRY_GAP * (columns - 1)) / columns;
+    var colHeights = new Array(columns).fill(0);
+
+    cards.forEach(function (card) {
+      var scale = parseFloat(card.dataset.scale) / 100;
+      var aspect = parseFloat(card.dataset.aspect);
+      var w = colWidth * scale;
+      var imgH = w / aspect;
+      var captionH = card.querySelector(".card-caption") ? 28 : 0;
+      var h = imgH + captionH;
+
+      var colIndex = 0;
+      for (var i = 1; i < columns; i++) {
+        if (colHeights[i] < colHeights[colIndex]) colIndex = i;
+      }
+
+      var left = colIndex * (colWidth + MASONRY_GAP) + (colWidth - w) / 2;
+      var top = colHeights[colIndex];
+
+      card.style.width = w + "px";
+      card.style.left = left + "px";
+      card.style.top = top + "px";
+
+      colHeights[colIndex] = top + h + MASONRY_GAP;
+    });
+
+    gallery.style.height = Math.max.apply(null, colHeights) + "px";
+  }
+
+  var masonryResizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(masonryResizeTimer);
+    masonryResizeTimer = setTimeout(layoutMasonry, 150);
+  });
 
   /* ---------- Janela flutuante da obra ---------- */
   function openArtwork(obra, trigger) {
