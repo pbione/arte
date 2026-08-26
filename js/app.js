@@ -127,6 +127,26 @@
     });
   }
 
+  /* Tamanho de exibição proporcional à área real da tela (cm),
+     não ao tamanho real: só para que a obra maior ocupe mais espaço.
+     Faixa 60%–100% da largura da coluna, escala por raiz quadrada da área. */
+  var SIZE_SCALE_MIN = 60;
+  var SIZE_SCALE_MAX = 100;
+
+  function obraArea(o) {
+    var l = Number(o && o.larguraCm);
+    var a = Number(o && o.alturaCm);
+    if (!isFinite(l) || !isFinite(a) || l <= 0 || a <= 0) return null;
+    return l * a;
+  }
+
+  function sizeScale(obra, maxArea) {
+    var area = obraArea(obra);
+    if (!area || !maxArea) return null;
+    var ratio = Math.sqrt(area / maxArea);
+    return Math.round(SIZE_SCALE_MIN + (SIZE_SCALE_MAX - SIZE_SCALE_MIN) * ratio);
+  }
+
   /* ---------- Séries ---------- */
   function seriesList() {
     var seen = [];
@@ -172,9 +192,15 @@
       gallery.classList.add("has-hover");
     }
 
-    validObras().forEach(function (obra) {
-      if (state.serie && localized(obra.serie) !== state.serie) return;
+    var visiveis = validObras().filter(function (obra) {
+      return !state.serie || localized(obra.serie) === state.serie;
+    });
+    var maxArea = visiveis.reduce(function (max, obra) {
+      var area = obraArea(obra);
+      return area && area > max ? area : max;
+    }, 0);
 
+    visiveis.forEach(function (obra) {
       var card = document.createElement("button");
       card.type = "button";
       card.className = "artwork-card";
@@ -184,6 +210,8 @@
       img.src = safeImageSrc(obra.imagem);
       img.alt = localized(obra.titulo);
       img.loading = "lazy";
+      var scale = sizeScale(obra, maxArea);
+      if (scale) img.style.width = scale + "%";
       card.appendChild(img);
 
       if (obra.vendido === true) {
