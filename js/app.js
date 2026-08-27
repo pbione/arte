@@ -164,6 +164,14 @@
   }
 
   /* ---------- Galeria ---------- */
+  /* Largura de cada quadro proporcional ao tamanho real (cm). A régua
+     de referência é 210cm por linha: cabem 3 pequenos (70cm), 2 médios
+     (100cm, com uma pequena folga) ou 1 grande (200cm). Como é fluxo
+     normal (flex-wrap), o navegador quebra a linha sozinho — não há
+     posicionamento calculado nem risco de sobreposição. */
+  var GALLERY_ROW_CM = 210;
+  var GALLERY_DEFAULT_CM = 100; // obra sem largura/altura cadastrada
+
   function renderGallery() {
     var gallery = $("gallery");
     gallery.textContent = "";
@@ -181,6 +189,8 @@
       card.type = "button";
       card.className = "artwork-card";
       card.setAttribute("aria-label", localized(obra.titulo));
+      var larguraCm = Number(obra.larguraCm) > 0 ? Number(obra.larguraCm) : GALLERY_DEFAULT_CM;
+      card.dataset.larguraCm = larguraCm;
 
       var img = document.createElement("img");
       img.src = safeImageSrc(obra.imagem);
@@ -210,7 +220,35 @@
 
       gallery.appendChild(card);
     });
+
+    sizeGalleryCards();
   }
+
+  function sizeGalleryCards() {
+    var gallery = $("gallery");
+    var cards = gallery.querySelectorAll(".artwork-card");
+    if (!cards.length) return;
+
+    var gap = parseFloat(window.getComputedStyle(gallery).columnGap) || 16;
+    // Reserva 2 gaps (pior caso: 3 quadros pequenos por linha) para que
+    // a régua de 210cm caiba exatamente, com os outros arranjos (2 médios
+    // ou 1 grande) sobrando espaço em vez de faltar.
+    var usableWidth = gallery.clientWidth - gap * 2;
+    var pxPerCm = usableWidth / GALLERY_ROW_CM;
+    if (!pxPerCm || pxPerCm <= 0) return;
+
+    cards.forEach(function (card) {
+      var cm = parseFloat(card.dataset.larguraCm) || GALLERY_DEFAULT_CM;
+      card.style.width = (cm * pxPerCm) + "px";
+    });
+  }
+
+  var gallerySizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(gallerySizeTimer);
+    gallerySizeTimer = setTimeout(sizeGalleryCards, 150);
+  });
+  window.addEventListener("load", sizeGalleryCards);
 
   /* ---------- Janela flutuante da obra ---------- */
   function openArtwork(obra, trigger) {
