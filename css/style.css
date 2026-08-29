@@ -127,12 +127,11 @@ body {
   border-bottom-color: var(--ink);
 }
 
-/* ---------- Galeria: largura de cada quadro proporcional ao tamanho
-   real (cm), calculada em JS a partir da largura do container. Fluxo
-   normal (flex-wrap) — o navegador quebra a linha sozinho, então não
-   há posicionamento calculado nem risco de sobreposição. Resulta em
-   ~3 quadros pequenos (70cm), 2 médios (100cm) ou 1 grande (200cm)
-   por linha, dependendo da largura disponível. ---------- */
+/* ---------- Galeria: linhas fixas (curadoria manual em app.js),
+   largura de cada quadro proporcional ao tamanho real (cm), numa
+   escala única calculada a partir da linha mais "cheia". Fluxo
+   normal (flex, sem posicionamento calculado) — sem risco de
+   sobreposição. ---------- */
 .gallery {
   flex: 1;
   width: 100%;
@@ -141,10 +140,18 @@ body {
   padding: 0.8rem 1.2rem 1.4rem;
   box-sizing: border-box;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.gallery-row {
+  display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
   gap: 16px;
+  width: 100%;
 }
 
 .artwork-card {
@@ -164,6 +171,7 @@ body {
   display: block;
   width: 100%;
   height: auto;
+  object-fit: cover;
   box-sizing: border-box;
   background: #fff;
   padding: 6px;
@@ -579,6 +587,7 @@ body {
 /* ---------- Responsivo ---------- */
 @media (max-width: 760px) {
   .gallery { padding: 1rem 1rem 2rem; gap: 10px; }
+  .gallery-row { gap: 10px; }
   .artwork-layout { grid-template-columns: 1fr; gap: 1.6rem; }
   .panel { padding: 1.8rem 1.4rem; }
   .about-label { display: none; }

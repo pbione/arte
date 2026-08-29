@@ -164,13 +164,62 @@
   }
 
   /* ---------- Galeria ---------- */
-  /* Largura de cada quadro proporcional ao tamanho real (cm). A régua
-     de referência é 210cm por linha: cabem 3 pequenos (70cm), 2 médios
-     (100cm, com uma pequena folga) ou 1 grande (200cm). Como é fluxo
-     normal (flex-wrap), o navegador quebra a linha sozinho — não há
-     posicionamento calculado nem risco de sobreposição. */
-  var GALLERY_ROW_CM = 210;
+  /* Curadoria manual das linhas: cada sub-array é uma linha, na ordem
+     dos ids (ver obras.js). Obras que não apareçam aqui caem numa
+     linha extra no final, para nada desaparecer se a série crescer.
+     Largura de cada quadro é proporcional ao tamanho real (cm), numa
+     escala única (mesmo px/cm em toda a galeria) calculada a partir
+     da linha com maior soma de largura — assim quem é maior de
+     verdade continua parecendo maior, mesmo em linhas diferentes. */
+  var GALLERY_ROWS = [
+    ["imperfeitos-08", "imperfeitos-09", "imperfeitos-10"], // Células #8, #9, #10
+    ["imperfeitos-06", "imperfeitos-02", "imperfeitos-11"], // Caos, Pensamentos, Calor
+    ["imperfeitos-03"] // Jardim
+  ];
   var GALLERY_DEFAULT_CM = 100; // obra sem largura/altura cadastrada
+  var GALLERY_DEFAULT_ALTURA_CM = 70;
+
+  function buildCard(obra) {
+    var card = document.createElement("button");
+    card.type = "button";
+    card.className = "artwork-card";
+    card.setAttribute("aria-label", localized(obra.titulo));
+    var larguraCm = Number(obra.larguraCm) > 0 ? Number(obra.larguraCm) : GALLERY_DEFAULT_CM;
+    var alturaCm = Number(obra.alturaCm) > 0 ? Number(obra.alturaCm) : GALLERY_DEFAULT_ALTURA_CM;
+    card.dataset.larguraCm = larguraCm;
+
+    var img = document.createElement("img");
+    img.src = safeImageSrc(obra.imagem);
+    img.alt = localized(obra.titulo);
+    img.loading = "lazy";
+    // Proporção fixada pelo tamanho real da tela (cm), não pela foto:
+    // telas do mesmo tamanho declarado (ex: todas 100×70) ficam com a
+    // mesma caixa, cortando a foto (object-fit: cover) se precisar.
+    img.style.aspectRatio = larguraCm + " / " + alturaCm;
+    card.appendChild(img);
+
+    if (obra.vendido === true) {
+      var sold = document.createElement("span");
+      sold.className = "card-sold";
+      sold.textContent = t("sold");
+      card.appendChild(sold);
+    }
+
+    var caption = document.createElement("span");
+    caption.className = "card-caption";
+    caption.textContent = localized(obra.titulo);
+    card.appendChild(caption);
+
+    var hint = document.createElement("span");
+    hint.className = "hover-hint";
+    hint.textContent = t("clickInfo");
+    card.appendChild(hint);
+
+    // Um clique já abre (duplo clique também funciona naturalmente)
+    card.addEventListener("click", function () { openArtwork(obra, card); });
+
+    return card;
+  }
 
   function renderGallery() {
     var gallery = $("gallery");
@@ -183,63 +232,66 @@
     var visiveis = validObras().filter(function (obra) {
       return !state.serie || localized(obra.serie) === state.serie;
     });
+    var porId = {};
+    visiveis.forEach(function (obra) { porId[obra.id] = obra; });
+    var usados = {};
 
-    visiveis.forEach(function (obra) {
-      var card = document.createElement("button");
-      card.type = "button";
-      card.className = "artwork-card";
-      card.setAttribute("aria-label", localized(obra.titulo));
-      var larguraCm = Number(obra.larguraCm) > 0 ? Number(obra.larguraCm) : GALLERY_DEFAULT_CM;
-      card.dataset.larguraCm = larguraCm;
+    GALLERY_ROWS.forEach(function (ids) {
+      var obrasDaLinha = ids
+        .map(function (id) { return porId[id]; })
+        .filter(function (obra) { return obra; });
+      if (!obrasDaLinha.length) return;
 
-      var img = document.createElement("img");
-      img.src = safeImageSrc(obra.imagem);
-      img.alt = localized(obra.titulo);
-      img.loading = "lazy";
-      card.appendChild(img);
-
-      if (obra.vendido === true) {
-        var sold = document.createElement("span");
-        sold.className = "card-sold";
-        sold.textContent = t("sold");
-        card.appendChild(sold);
-      }
-
-      var caption = document.createElement("span");
-      caption.className = "card-caption";
-      caption.textContent = localized(obra.titulo);
-      card.appendChild(caption);
-
-      var hint = document.createElement("span");
-      hint.className = "hover-hint";
-      hint.textContent = t("clickInfo");
-      card.appendChild(hint);
-
-      // Um clique já abre (duplo clique também funciona naturalmente)
-      card.addEventListener("click", function () { openArtwork(obra, card); });
-
-      gallery.appendChild(card);
+      var row = document.createElement("div");
+      row.className = "gallery-row";
+      obrasDaLinha.forEach(function (obra) {
+        usados[obra.id] = true;
+        row.appendChild(buildCard(obra));
+      });
+      gallery.appendChild(row);
     });
+
+    // Obras ainda não curadas em nenhuma linha (ex: novas adições)
+    var restantes = visiveis.filter(function (obra) { return !usados[obra.id]; });
+    if (restantes.length) {
+      var extra = document.createElement("div");
+      extra.className = "gallery-row";
+      restantes.forEach(function (obra) { extra.appendChild(buildCard(obra)); });
+      gallery.appendChild(extra);
+    }
 
     sizeGalleryCards();
   }
 
   function sizeGalleryCards() {
     var gallery = $("gallery");
-    var cards = gallery.querySelectorAll(".artwork-card");
-    if (!cards.length) return;
+    var rows = gallery.querySelectorAll(".gallery-row");
+    if (!rows.length) return;
 
-    var gap = parseFloat(window.getComputedStyle(gallery).columnGap) || 16;
-    // Reserva 2 gaps (pior caso: 3 quadros pequenos por linha) para que
-    // a régua de 210cm caiba exatamente, com os outros arranjos (2 médios
-    // ou 1 grande) sobrando espaço em vez de faltar.
+    var gap = parseFloat(window.getComputedStyle(rows[0]).columnGap) || 16;
+
+    // Escala única: baseada na linha com maior soma de largura (cm),
+    // para que essa linha ocupe a largura toda e as demais fiquem
+    // centralizadas, sem distorcer o tamanho relativo entre obras.
+    var maiorSomaCm = 0;
+    rows.forEach(function (row) {
+      var somaCm = 0;
+      row.querySelectorAll(".artwork-card").forEach(function (card) {
+        somaCm += parseFloat(card.dataset.larguraCm) || GALLERY_DEFAULT_CM;
+      });
+      if (somaCm > maiorSomaCm) maiorSomaCm = somaCm;
+    });
+    if (!maiorSomaCm) return;
+
     var usableWidth = gallery.clientWidth - gap * 2;
-    var pxPerCm = usableWidth / GALLERY_ROW_CM;
+    var pxPerCm = usableWidth / maiorSomaCm;
     if (!pxPerCm || pxPerCm <= 0) return;
 
-    cards.forEach(function (card) {
-      var cm = parseFloat(card.dataset.larguraCm) || GALLERY_DEFAULT_CM;
-      card.style.width = (cm * pxPerCm) + "px";
+    rows.forEach(function (row) {
+      row.querySelectorAll(".artwork-card").forEach(function (card) {
+        var cm = parseFloat(card.dataset.larguraCm) || GALLERY_DEFAULT_CM;
+        card.style.width = (cm * pxPerCm) + "px";
+      });
     });
   }
 
