@@ -202,24 +202,42 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* No hover: esconde legenda, mostra só o convite */
+/* No hover: esconde legenda, mostra um balãozinho de dica */
 .artwork-card .hover-hint {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1.6rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.22em;
+  left: 50%;
+  bottom: -1.9rem;
+  transform: translate(-50%, 4px);
+  background: var(--ink);
+  color: #fff;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
   text-transform: lowercase;
-  color: var(--ink-soft);
+  white-space: nowrap;
+  box-shadow: var(--frame-shadow);
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
   pointer-events: none;
+}
+.artwork-card .hover-hint::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--ink);
 }
 .artwork-card:hover .card-caption,
 .artwork-card:focus-visible .card-caption { opacity: 0; }
 .artwork-card:hover .hover-hint,
-.artwork-card:focus-visible .hover-hint { opacity: 1; }
+.artwork-card:focus-visible .hover-hint {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
 
 /* Selo vendido na miniatura */
 .card-sold {
